@@ -1,6 +1,6 @@
 # qzig
 
-[![Build Status](https://travis-ci.org/seluxit/qzig.svg?branch=master)](https://travis-ci.org/seluxit/qzig)
-[![Coverage](https://coveralls.io/repos/github/seluxit/qzig/badge.svg?branch=master)](https://coveralls.io/github/selxuit/qzig?branch=master)
+[![Build Status](https://travis-ci.org/Seluxit/qzig.svg?branch=master)](https://travis-ci.org/Seluxit/qzig)
+[![Coverage Status](https://coveralls.io/repos/github/Seluxit/qzig/badge.svg?branch=master)](https://coveralls.io/github/Seluxit/qzig?branch=master)
 
 ZigBee converter for Seluxit Q platform
