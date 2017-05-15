@@ -10,11 +10,9 @@ setup(
     keywords="zigbee q seluxit converter",
     url="http://q.seluxit.com",
     packages=find_packages(exclude=['*.tests']),
-    classifiers=[
-        "Development Status :: 1 - Alpha",
-        "Topic :: Utilities",
-        "License :: OSI Approved :: GPL-3.0 License",
-    ],
+    entry_points={
+        'console_scripts': ['qzig=qzig:main'],
+    },
     install_requires=[
         'bellows',
     ],

@@ -1,4 +1,4 @@
-import qzig  # noqa: F401
+import qzig
 
 
 def test_1():

@@ -1,0 +1,163 @@
+import asyncio
+import logging
+import os
+import ssl
+import json
+
+import util
+
+LOGGER = logging.getLogger(__name__)
+
+baseDir, baseFile = os.path.split(os.path.abspath(__file__))
+certBase = baseDir
+sslServerCert = certBase + "/certificates/ca.crt"
+sslClientCert = certBase + "/certificates/client.crt"
+sslKey = certBase + "/certificates/client.key"
+
+
+class JsonRPC(asyncio.Protocol):
+
+    class Terminator:
+        pass
+
+    def __init__(self, app, connected_future=None):
+        self._connected_future = connected_future
+        self._sendq = asyncio.Queue()
+        self._app = app
+        self._id = 1
+        self._pending = (-1, None)
+
+    def connection_made(self, transport):
+        """Callback when the socket is connected"""
+        self._transport = transport
+        if self._connected_future is not None:
+            self._connected_future.set_result(True)
+        asyncio.ensure_future(self._send_task())
+
+    def data_received(self, data):
+        """Callback when there is data received from the socket"""
+
+        data = data.decode()
+        LOGGER.debug("recv: %s", data)
+
+        rpc = json.loads(data)
+        if "method" in rpc:
+            yield from self._handle_request(rpc)
+        else:
+            self._handle_result(rpc)
+
+    def connection_lost(self, exc):
+        print('The server closed the connection')
+        print('Stop the event loop')
+
+    def close(self):
+        LOGGER.debug("close")
+        self._sendq.put_nowait(self.Terminator)
+        self._transport.close()
+
+    @asyncio.coroutine
+    def _send_task(self):
+        """Send queue handler"""
+        while True:
+            item = yield from self._sendq.get()
+            if item is self.Terminator:
+                break
+            data, id = item
+            LOGGER.debug("Sending: %s", data)
+            if id is -1:
+                self._transport.write(data.encode())
+            else:
+                self._pending = (id, asyncio.Future())
+                self._transport.write(data.encode())
+                yield from self._pending[1]
+
+    def _handle_result(self, rpc):
+        pending, self._pending = self._pending, (-1, None)
+
+        if "error" in rpc:
+            LOGGER.error(rpc["error"])
+            pending[1].set_result(False)
+        else:
+            pending[1].set_result(True)
+
+    @asyncio.coroutine
+    def _handle_request(self, rpc):
+        result = yield from getattr(self._app, rpc["method"])(**rpc["params"])
+        if result is True:
+            self._send_result(rpc["id"], result)
+        else:
+            LOGGER.error(result)
+            self._send_error(rpc["id"], str(result))
+
+    def _send(self, rpc, id):
+        #print(json.dumps(rpc,
+        #                 cls=util.QZigEncoder,
+        #                 sort_keys=True,
+        #                 indent=4,
+        #                 separators=(',', ': ')))
+        rpc = json.dumps(rpc, cls=util.QZigEncoder)
+        self._sendq.put_nowait((rpc, id))
+
+    def _send_result(self, id, result):
+        rpc = {
+            "jsonrpc": "2.0",
+            "id": id,
+            "result": result
+        }
+        self._send(rpc, -1)
+
+    def _send_error(self, id, error):
+        rpc = {
+            "jsonrpc": "2.0",
+            "id": id,
+            "error": {
+                "code": -32050,
+                "message": error
+            }
+        }
+        self._send(rpc, -1)
+
+    def _rpc(self, method, url, data):
+        id = self._id
+        self._id = self._id + 1
+        rpc = {
+            "jsonrpc": "2.0",
+            "method": method,
+            "id": id,
+            "params": {
+                "url": url,
+                "data": data
+            }
+        }
+        self._send(rpc, id)
+
+    def post(self, url, data):
+        return self._rpc("POST", url, data)
+
+
+@asyncio.coroutine
+def connect(model):
+    loop = asyncio.get_event_loop()
+
+    connection_future = asyncio.Future()
+    protocol = JsonRPC(model, connection_future)
+
+    ssl_ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_SSLv23)
+    ssl_ctx.load_cert_chain(certfile=sslClientCert, keyfile=sslKey)
+    ssl_ctx.load_verify_locations(cafile=sslServerCert)
+    ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+
+    host = "q-wot.com"
+    port = 21005
+
+    yield from loop.create_connection(
+        lambda: protocol,
+        ssl=ssl_ctx,
+        server_hostname=host,
+        host=host,
+        port=port
+    )
+
+    yield from connection_future
+
+    return protocol
