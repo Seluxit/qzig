@@ -1,0 +1,58 @@
+import asyncio
+from unittest import mock
+
+import pytest
+
+import bellows
+import qzig.application as application
+import qzig
+
+@pytest.fixture
+def app():
+    dev = "/dev/null"
+    db = "test.db"
+    app = application.Application(dev, db)
+
+    bellows.ezsp.EZSP = mock.MagicMock()
+    bellows.zigbee.application.ControllerApplication = mock.MagicMock()
+
+    rpc_mock = mock.MagicMock()
+    rpc_transport = mock.MagicMock()
+    connection_future = asyncio.Future()
+
+    rpc = qzig.json_rpc.JsonRPC(app, connection_future)
+
+    @asyncio.coroutine
+    def connect(*args, **kwargs):
+        return []
+
+    @asyncio.coroutine
+    def rpc_connect(*args, **kwargs):
+        rpc.connection_made(rpc_transport)
+        return rpc
+
+    bellows.zigbee.application.ControllerApplication.connect = connect
+
+    qzig.json_rpc.connect = rpc_connect
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(app.init())
+
+    assert app._rpc == rpc
+    assert rpc._transport == rpc_transport
+
+    yield app
+
+    app.close()
+
+def test_init(app):
+    assert app._network is not None
+
+def test_connect(app):
+    assert app._rpc._transport.write.call_count == 1
+
+    assert app._rpc._pending[0] == 1
+
+    app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"result":true}')
+
+    assert app._rpc._pending[0] == -1
