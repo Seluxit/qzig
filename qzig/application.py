@@ -1,9 +1,9 @@
 import asyncio
 import logging
 
-import zigbee as zigbee
-import json_rpc as json_rpc
-import network as network
+import qzig.zigbee as zigbee
+import qzig.json_rpc as json_rpc
+import qzig.network as network
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +28,10 @@ class Application():
         yield from self._zb.connect()
 
         self._rpc = yield from json_rpc.connect(self)
+
+    def close(self):
+        self._zb.close()
+        self._rpc.close()
 
     def _load(self):
         self._network.load()

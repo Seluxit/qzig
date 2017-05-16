@@ -4,7 +4,7 @@ import os
 import ssl
 import json
 
-import util
+import qzig.util
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ class JsonRPC(asyncio.Protocol):
     def __init__(self, app, connected_future=None):
         self._connected_future = connected_future
         self._sendq = asyncio.Queue()
+        self._reqq = asyncio.Queue()
         self._app = app
         self._id = 1
         self._pending = (-1, None)
@@ -32,7 +33,8 @@ class JsonRPC(asyncio.Protocol):
         self._transport = transport
         if self._connected_future is not None:
             self._connected_future.set_result(True)
-        asyncio.ensure_future(self._send_task())
+        self._task_send = asyncio.ensure_future(self._send_task())
+        self._task_request = asyncio.ensure_future(self._request_task())
 
     def data_received(self, data):
         """Callback when there is data received from the socket"""
@@ -42,17 +44,20 @@ class JsonRPC(asyncio.Protocol):
 
         rpc = json.loads(data)
         if "method" in rpc:
-            yield from self._handle_request(rpc)
+            self._handle_request(rpc)
         else:
             self._handle_result(rpc)
 
     def connection_lost(self, exc):
-        print('The server closed the connection')
-        print('Stop the event loop')
+        if self._app is not None:
+            print("Connection lost, reconnect...")
 
     def close(self):
-        LOGGER.debug("close")
+        self._app = None
         self._sendq.put_nowait(self.Terminator)
+        self._task_send.cancel()
+        self._reqq.put_nowait(self.Terminator)
+        self._task_request.cancel()
         self._transport.close()
 
     @asyncio.coroutine
@@ -80,14 +85,25 @@ class JsonRPC(asyncio.Protocol):
         else:
             pending[1].set_result(True)
 
-    @asyncio.coroutine
     def _handle_request(self, rpc):
-        result = yield from getattr(self._app, rpc["method"])(**rpc["params"])
-        if result is True:
-            self._send_result(rpc["id"], result)
-        else:
-            LOGGER.error(result)
-            self._send_error(rpc["id"], str(result))
+        LOGGER.debug("New request")
+        self._reqq.put_nowait(rpc)
+
+    @asyncio.coroutine
+    def _request_task(self):
+        while True:
+            item = yield from self._reqq.get()
+            if item is self.Terminator:
+                break
+            LOGGER.debug(item)
+            method = item["method"]
+            params = item["params"]
+            result = yield from getattr(self._app, method)(**params)
+            if result is True:
+                self._send_result(item["id"], result)
+            else:
+                LOGGER.error(result)
+                self._send_error(item["id"], str(result))
 
     def _send(self, rpc, id):
         #print(json.dumps(rpc,
@@ -95,7 +111,7 @@ class JsonRPC(asyncio.Protocol):
         #                 sort_keys=True,
         #                 indent=4,
         #                 separators=(',', ': ')))
-        rpc = json.dumps(rpc, cls=util.QZigEncoder)
+        rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
         self._sendq.put_nowait((rpc, id))
 
     def _send_result(self, id, result):

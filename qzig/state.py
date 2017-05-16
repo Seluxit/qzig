@@ -6,7 +6,7 @@ import os
 import json
 import datetime
 
-import util
+import qzig.util
 
 LOGGER = logging.getLogger(__name__)
 
@@ -46,7 +46,8 @@ class State():
         }
 
     def get_timestamp(self):
-        return str(datetime.datetime.utcnow()).split('.')[0].replace(" ","T") + 'Z'
+        t = str(datetime.datetime.utcnow()).split('.')[0]
+        return t.replace(" ", "T") + 'Z'
 
     def _parse(self, load):
         self.data = load["data"]
@@ -70,4 +71,4 @@ class State():
                 "data": self.get_raw_data(),
                 "device_id": self.device_id,
                 "value_id": self.value_id,
-            }, f, cls=util.QZigEncoder)
+            }, f, cls=qzig.util.QZigEncoder)

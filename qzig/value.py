@@ -7,8 +7,8 @@ import json
 
 import bellows.zigbee.zcl.clusters.general as zigbee_clusters
 
-import state
-import util
+import qzig.state as state
+import qzig.util
 
 
 LOGGER = logging.getLogger(__name__)
@@ -110,7 +110,7 @@ class Value():
         self.endpoint_id = endpoint.endpoint_id
         self._endpoint = endpoint
         self.cluster_id = cluster.cluster_id
-        self._cluser = cluster
+        self._cluster = cluster
 
         if self.cluster_id == zigbee_clusters.OnOff.cluster_id:
             self.data["name"] = "On/Off"
@@ -121,9 +121,25 @@ class Value():
             self.data["number"].step = 1
             self.data["number"].unit = "boolean"
 
-            self.add_states((state.StateType.REPORT, state.StateType.CONTROL))
+            self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
+        elif self.cluster_id == zigbee_clusters.Identify.cluster_id:
+            self.data["name"] = "Identify"
+            self.data["permission"] = ValuePermission.WRITE_ONLY
+            self.data["type"] = "Identify"
+            self.data["number"].min = 0
+            self.data["number"].max = 120
+            self.data["number"].step = 1
+            self.data["number"].unit = "seconds"
+
+            self.add_states([state.StateType.CONTROL])
         else:
             self.data = None
+
+        if self.data is not None:
+            cluster.add_listener(self)
+
+    def cluster_command(self, aps_frame, tsn, command_id, args):
+        LOGGER.debug("APS: %d TSN: %d CMD: %d ARGS %s", aps_frame, tsn, command_id, args)
 
     def add_states(self, types):
         for t in types:
@@ -167,7 +183,7 @@ class Value():
                 "device_id": self.device_id,
                 "endpoint_id": str(self.endpoint_id),
                 "cluster_id": str(self.cluster_id)
-            }, f, cls=util.QZigEncoder)
+            }, f, cls=qzig.util.QZigEncoder)
 
         for s in self._states:
             s.save()
@@ -182,7 +198,7 @@ class Value():
                     try:
                         load = json.load(f)
                     except:
-                        LOGGER.debug("Failed to load %s", file)
+                        LOGGER.error("Failed to load %s", file)
                         continue
 
                     s = state.State(self.device_id, self.data[":id"], load=load)
@@ -190,19 +206,25 @@ class Value():
 
     @asyncio.coroutine
     def change_state(self, id, data):
-        for state in self._states:
-            if state.data[":id"] == id:
-                if state.data[":id"]["type"] == StateType.REPORT:
+        for s in self._states:
+            if s.data[":id"] == id:
+                if s.data["type"] == state.StateType.REPORT:
                     return "Report state can't be changed"
 
-                data = json.dumps(data)
+                if self.cluster_id == zigbee_clusters.OnOff.cluster_id:
+                    if data["data"] == "1":
+                        v = yield from self._cluster.on()
+                    else:
+                        v = yield from self._cluster.off()
 
-                if data["data"] == "1":
-                    v = yield from cluster.on()
+                    print(v)
+                    self.save()
+                    return True
+                elif self.cluster_id == zigbee_clusters.Identify.cluster_id:
+                    v = yield from self._cluster.identify(int(data["data"]))
+                    print(v)
+                    return True
                 else:
-                    v = yield from cluster.off()
-
-                print(v)
-                return True
+                    return False
 
         return None

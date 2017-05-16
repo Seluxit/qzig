@@ -4,7 +4,7 @@ import uuid
 import json
 import os
 
-import device as device
+import qzig.device as device
 
 LOGGER = logging.getLogger(__name__)
 

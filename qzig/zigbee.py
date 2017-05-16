@@ -57,6 +57,9 @@ class ZigBee():
                                 ep.clusters[cluster].name, cluster
                             ))
 
+    def close(self):
+        self.app._ezsp.close()
+
     def devices(self):
         return self.app.devices.items()
 

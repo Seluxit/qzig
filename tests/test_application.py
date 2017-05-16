@@ -7,6 +7,7 @@ import bellows
 import qzig.application as application
 import qzig
 
+
 @pytest.fixture
 def app():
     dev = "/dev/null"
@@ -14,9 +15,13 @@ def app():
     app = application.Application(dev, db)
 
     bellows.ezsp.EZSP = mock.MagicMock()
-    bellows.zigbee.application.ControllerApplication = mock.MagicMock()
+    con_mock = mock.MagicMock()
 
-    rpc_mock = mock.MagicMock()
+    def devices():
+        return [("11:22:33:44:55:66", mock.MagicMock())]
+    con_mock.devices.items = devices
+    bellows.zigbee.application.ControllerApplication = con_mock
+
     rpc_transport = mock.MagicMock()
     connection_future = asyncio.Future()
 
@@ -45,14 +50,14 @@ def app():
 
     app.close()
 
+
 def test_init(app):
     assert app._network is not None
+
 
 def test_connect(app):
     assert app._rpc._transport.write.call_count == 1
 
     assert app._rpc._pending[0] == 1
-
     app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"result":true}')
-
     assert app._rpc._pending[0] == -1

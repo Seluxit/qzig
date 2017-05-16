@@ -4,8 +4,8 @@ import uuid
 import os
 import json
 
-import model
-import value
+import qzig.model as model
+import qzig.value as value
 
 LOGGER = logging.getLogger(__name__)
 

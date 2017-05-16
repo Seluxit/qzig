@@ -1,7 +1,8 @@
 import json
 
-import value
-import state
+import qzig.value as value
+import qzig.state as state
+
 
 class QZigEncoder(json.JSONEncoder):
     def default(self, obj):
