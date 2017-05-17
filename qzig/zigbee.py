@@ -3,7 +3,6 @@ import logging
 
 import bellows.zigbee.application as zigbee
 import bellows.ezsp
-import bellows.types as t
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +60,7 @@ class ZigBee():
         self.app._ezsp.close()
 
     def devices(self):
+        print("devices")
         return self.app.devices.items()
 
     # Callbacks

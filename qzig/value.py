@@ -83,7 +83,7 @@ class Value():
             "delta": "",
             "number": ValueNumberType(),
             "status": ValueStatus.OK,
-            "state":  []
+            "state": []
         }
 
     def _parse(self, load):

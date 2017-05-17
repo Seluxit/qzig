@@ -3,7 +3,7 @@
 import asyncio
 import logging
 
-import application as application
+import qzig.application as application
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def setup_logging():
     logging.getLogger('').addHandler(console)
 
 
-def main():
+def main(): # pragma: no cover
     setup_logging()
 
     device = "/dev/ttyACM1"
@@ -53,5 +53,5 @@ def main():
         loop.close()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

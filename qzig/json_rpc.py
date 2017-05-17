@@ -53,6 +53,7 @@ class JsonRPC(asyncio.Protocol):
             print("Connection lost, reconnect...")
 
     def close(self):
+        """Close the server connection and queues"""
         self._app = None
         self._sendq.put_nowait(self.Terminator)
         self._task_send.cancel()
@@ -86,7 +87,6 @@ class JsonRPC(asyncio.Protocol):
             pending[1].set_result(True)
 
     def _handle_request(self, rpc):
-        LOGGER.debug("New request")
         self._reqq.put_nowait(rpc)
 
     @asyncio.coroutine
@@ -106,7 +106,7 @@ class JsonRPC(asyncio.Protocol):
                 self._send_error(item["id"], str(result))
 
     def _send(self, rpc, id):
-        #print(json.dumps(rpc,
+        # print(json.dumps(rpc,
         #                 cls=util.QZigEncoder,
         #                 sort_keys=True,
         #                 indent=4,

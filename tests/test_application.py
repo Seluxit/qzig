@@ -17,8 +17,11 @@ def app():
     bellows.ezsp.EZSP = mock.MagicMock()
     con_mock = mock.MagicMock()
 
+    @property
     def devices():
         return [("11:22:33:44:55:66", mock.MagicMock())]
+
+    con_mock.devices = mock.MagicMock()
     con_mock.devices.items = devices
     bellows.zigbee.application.ControllerApplication = con_mock
 
@@ -45,6 +48,8 @@ def app():
 
     assert app._rpc == rpc
     assert rpc._transport == rpc_transport
+
+    # assert app._zb.devices.items.call_count == 1
 
     yield app
 

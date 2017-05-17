@@ -1,5 +1,5 @@
-import qzig
+import qzig.main
 
 
-def test_1():
-    assert 1 == 1
+def test_logging():
+    qzig.main.setup_logging()
