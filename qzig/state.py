@@ -5,6 +5,7 @@ import os
 import json
 import datetime
 
+import qzig.model as model
 import qzig.util
 
 LOGGER = logging.getLogger(__name__)
@@ -21,15 +22,16 @@ class StateStatus(enum.Enum):
     FAILED = "Failed"
 
 
-class State():
+class State(model.Model):
 
-    def __init__(self, device_id, value_id, state_type=None, id=None, load=None):
-        self.device_id = device_id
-        self.value_id = value_id
+    def __init__(self, parent, state_type=None, id=None, load=None):
+        self._parent = parent
+        self.attr = {}
+
         if load is None:
             self._init(id, state_type)
         else:
-            self._parse(load)
+            self._load(load)
 
     def _init(self, id, state_type):
         if id is None:
@@ -44,14 +46,13 @@ class State():
             "data": "0"
         }
 
+    @property
+    def type(self):
+        return self.data["type"]
+
     def get_timestamp(self):
         t = str(datetime.datetime.utcnow()).split('.')[0]
         return t.replace(" ", "T") + 'Z'
-
-    def _parse(self, load):
-        self.data = load["data"]
-        self.device_id = load["device_id"]
-        self.value_id = load["value_id"]
 
     def get_raw_data(self):
         tmp = self.data
@@ -60,14 +61,3 @@ class State():
     def get_data(self):
         tmp = self.get_raw_data()
         return tmp
-
-    def save(self):
-        if not os.path.exists("store/devices/" + self.device_id + "/values/" + self.value_id + "/states/"):
-            os.makedirs("store/devices/" + self.device_id + "/values/" + self.value_id + "/states/")
-
-        with open("store/devices/" + self.device_id + "/values/" + self.value_id + "/states/" + self.data[":id"] + ".json", 'w') as f:
-            json.dump({
-                "data": self.get_raw_data(),
-                "device_id": self.device_id,
-                "value_id": self.value_id,
-            }, f, cls=qzig.util.QZigEncoder)

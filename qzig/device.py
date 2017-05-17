@@ -12,12 +12,15 @@ LOGGER = logging.getLogger(__name__)
 
 class Device(model.Model):
 
-    def __init__(self, id=None, load=None):
-        self._values = []
+    def __init__(self, parent, id=None, load=None):
+        self._parent = parent
+        self._children = []
+        self._child_class = value.Value
+
         if load is None:
             self._init(id)
         else:
-            self._parse(load)
+            self._load(load)
 
     def _init(self, id):
         self._init_device = True
@@ -38,29 +41,21 @@ class Device(model.Model):
             "included": "1",
             "value": []
         }
+        self.attr = {
+            "ieee": ""
+        }
 
-    def _parse(self, load):
-        self.data = load["data"]
-        self.ieee = load["ieee"]
+    def _parse(self):
         self._init_device = False
 
-    def save(self):
-        if not os.path.exists("store/devices/" + self.data[":id"]):
-            os.makedirs("store/devices/" + self.data[":id"])
-
-        with open("store/devices/" + self.data[":id"] + "/device.json", 'w') as f:
-            json.dump({
-                "data": self.get_raw_data(),
-                "ieee": str(self.ieee)
-            }, f)
-
-        for v in self._values:
-            v.save()
+    @property
+    def ieee(self):
+        return self.attr["ieee"]
 
     @asyncio.coroutine
     def parse_device(self, dev):
         self._dev = dev
-        self.ieee = str(dev.ieee)
+        self.attr["ieee"] = str(dev.ieee)
         if self._init_device:
             yield from self.read_device_info()
 
@@ -71,39 +66,22 @@ class Device(model.Model):
             endpoint = self._dev.endpoints[e_id]
             for c_id in endpoint.clusters:
                 cluster = endpoint.clusters[c_id]
-                val = self.get_value(str(e_id), str(c_id))
+                val = self.get_value(e_id, c_id)
                 if val is None:
-                    val = value.Value(self.data[":id"])
-                    self._values.append(val)
+                    val = self._child_class(self)
+                    self._children.append(val)
+                else:
+                    val._parent = self
 
                 val.parse_cluster(endpoint, cluster)
 
     def get_value(self, endpoint, cluster):
         try:
-            value = next(v for v in self._values
-                         if v.endpoint_id == endpoint and v.cluster_id == cluster)
+            value = next(v for v in self._children
+                         if str(v.endpoint_id) == str(endpoint) and str(v.cluster_id) == str(cluster))
         except StopIteration:
             value = None
         return value
-
-    def load_values(self):
-        for (root, dirs, files) in os.walk("store/devices/" + self.data[":id"] + "/values/"):
-            dirs = [os.path.join(root, d) for d in dirs]
-
-            for dir in dirs:
-                if not os.path.exists(dir + "/value.json"):
-                    continue
-
-                with open(dir + "/value.json", 'r') as f:
-                    try:
-                        load = json.load(f)
-                    except:
-                        LOGGER.debug("Failed to load %s", dir + "/value.json")
-                        continue
-
-                    v = value.Value(self.data[":id"], load=load)
-                    self._values.append(v)
-                    v.load_states()
 
     @asyncio.coroutine
     def read_device_info(self):
@@ -153,7 +131,7 @@ class Device(model.Model):
 
     def get_data(self):
         tmp = self.get_raw_data()
-        for v in self._values:
+        for v in self._children:
             d = v.get_data()
             if d is not None:
                 tmp["value"].append(d)
@@ -162,7 +140,7 @@ class Device(model.Model):
 
     @asyncio.coroutine
     def change_state(self, id, data):
-        for val in self._values:
+        for val in self._children:
             res = yield from val.change_state(id, data)
             if res is not None:
                 return res

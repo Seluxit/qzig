@@ -35,7 +35,7 @@ class Application():
 
     def _load(self):
         self._network.load()
-        self._network.load_devices()
+
         for ieee, dev in self._zb.devices():
             yield from self._network.add_device(dev)
 

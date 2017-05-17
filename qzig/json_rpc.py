@@ -106,13 +106,13 @@ class JsonRPC(asyncio.Protocol):
                 self._send_error(item["id"], str(result))
 
     def _send(self, rpc, id):
-        # print(json.dumps(rpc,
-        #                 cls=util.QZigEncoder,
-        #                 sort_keys=True,
-        #                 indent=4,
-        #                 separators=(',', ': ')))
-        rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
-        self._sendq.put_nowait((rpc, id))
+        print(json.dumps(rpc,
+                         cls=qzig.util.QZigEncoder,
+                         sort_keys=True,
+                         indent=4,
+                         separators=(',', ': ')))
+        #rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
+        #self._sendq.put_nowait((rpc, id))
 
     def _send_result(self, id, result):
         rpc = {

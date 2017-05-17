@@ -27,7 +27,7 @@ def setup_logging():
     logging.getLogger('').addHandler(console)
 
 
-def main(): # pragma: no cover
+def main():  # pragma: no cover
     setup_logging()
 
     device = "/dev/ttyACM1"
@@ -53,5 +53,5 @@ def main(): # pragma: no cover
         loop.close()
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

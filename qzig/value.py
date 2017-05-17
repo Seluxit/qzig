@@ -7,6 +7,7 @@ import json
 
 import bellows.zigbee.zcl.clusters.general as zigbee_clusters
 
+import qzig.model as model
 import qzig.state as state
 import qzig.util
 
@@ -59,15 +60,18 @@ class ValueStatus(enum.Enum):
     PENDING = "pending"
 
 
-class Value():
+class Value(model.Model):
 
-    def __init__(self, device_id, id=None, load=None):
-        self.device_id = device_id
-        self._states = []
+    def __init__(self, parent, id=None, load=None):
+        self._parent = parent
+        self._children = []
+        self._child_class = state.State
+        self.attr = {}
+
         if load is None:
             self._init(id)
         else:
-            self._parse(load)
+            self._load(load)
 
     def _init(self, id):
         if id is None:
@@ -86,12 +90,15 @@ class Value():
             "state": []
         }
 
-    def _parse(self, load):
-        self.data = load["data"]
-        self.device_id = load["device_id"]
-        self.endpoint_id = load["endpoint_id"]
-        self.cluster_id = load["cluster_id"]
+    @property
+    def endpoint_id(self):
+        return self.attr["endpoint_id"]
 
+    @property
+    def cluster_id(self):
+        return self.attr["cluster_id"]
+
+    def _parse(self):
         self.data["permission"] = ValuePermission(self.data["permission"])
         self.data["status"] = ValueStatus(self.data["status"])
 
@@ -107,12 +114,12 @@ class Value():
             self.data["xml"] = ValueSetType(self.data["xml"])
 
     def parse_cluster(self, endpoint, cluster):
-        self.endpoint_id = endpoint.endpoint_id
+        self.attr["endpoint_id"] = endpoint.endpoint_id
         self._endpoint = endpoint
-        self.cluster_id = cluster.cluster_id
+        self.attr["cluster_id"] = cluster.cluster_id
         self._cluster = cluster
 
-        if self.cluster_id == zigbee_clusters.OnOff.cluster_id:
+        if self.attr["cluster_id"] == zigbee_clusters.OnOff.cluster_id:
             self.data["name"] = "On/Off"
             self.data["permission"] = ValuePermission.READ_WRITE
             self.data["type"] = "On/Off"
@@ -122,7 +129,7 @@ class Value():
             self.data["number"].unit = "boolean"
 
             self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
-        elif self.cluster_id == zigbee_clusters.Identify.cluster_id:
+        elif self.attr["cluster_id"] == zigbee_clusters.Identify.cluster_id:
             self.data["name"] = "Identify"
             self.data["permission"] = ValuePermission.WRITE_ONLY
             self.data["type"] = "Identify"
@@ -145,13 +152,15 @@ class Value():
         for t in types:
             s = self.get_state(t.value)
             if s is None:
-                s = state.State(self.device_id, self.data[":id"], t)
-                self._states.append(s)
+                s = state.State(self, t)
+                self._children.append(s)
+            else:
+                s._parent = self
 
     def get_state(self, state_type):
         try:
-            state = next(s for s in self._states
-                         if s.data["type"] == state_type)
+            state = next(s for s in self._children
+                         if s.type == state_type)
         except StopIteration:
             state = None
         return state
@@ -164,49 +173,15 @@ class Value():
 
     def get_data(self):
         tmp = self.get_raw_data()
-        if len(self._states):
+        if len(self._children):
             self.data["state"] = []
-        for s in self._states:
+        for s in self._children:
             tmp["state"].append(s.get_data())
         return tmp
 
-    def save(self):
-        if self.data is None:
-            return
-
-        if not os.path.exists("store/devices/" + self.device_id + "/values/" + self.data[":id"]):
-            os.makedirs("store/devices/" + self.device_id + "/values/" + self.data[":id"])
-
-        with open("store/devices/" + self.device_id + "/values/" + self.data[":id"] + "/value.json", 'w') as f:
-            json.dump({
-                "data": self.get_raw_data(),
-                "device_id": self.device_id,
-                "endpoint_id": str(self.endpoint_id),
-                "cluster_id": str(self.cluster_id)
-            }, f, cls=qzig.util.QZigEncoder)
-
-        for s in self._states:
-            s.save()
-
-    def load_states(self):
-        for (root, dirs, files) in os.walk("store/devices/" + self.device_id + "/values/" + self.data[":id"] + "/states/"):
-            files = [os.path.join(root, f) for f in files]
-            files = [f for f in files if f.endswith(".json")]
-
-            for file in files:
-                with open(file, 'r') as f:
-                    try:
-                        load = json.load(f)
-                    except:
-                        LOGGER.error("Failed to load %s", file)
-                        continue
-
-                    s = state.State(self.device_id, self.data[":id"], load=load)
-                    self._states.append(s)
-
     @asyncio.coroutine
     def change_state(self, id, data):
-        for s in self._states:
+        for s in self._children:
             if s.data[":id"] == id:
                 if s.data["type"] == state.StateType.REPORT:
                     return "Report state can't be changed"

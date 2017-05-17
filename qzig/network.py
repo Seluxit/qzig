@@ -4,12 +4,13 @@ import uuid
 import json
 import os
 
+import qzig.model as model
 import qzig.device as device
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Network():
+class Network(model.Model):
 
     def __init__(self, id=None):
         if id is None:
@@ -21,14 +22,18 @@ class Network():
             "name": "ZigBee Network",
             "device": []
         }
-        self._devices = []
+        self.attr = {}
+        self._children = []
+        self._child_class = device.Device
 
     @asyncio.coroutine
     def add_device(self, dev):
         d = self.get_device(str(dev.ieee))
         if d is None:
-            d = device.Device()
-            self._devices.append(d)
+            d = device.Device(self)
+            self._children.append(d)
+        else:
+            d._parent = self
 
         yield from d.parse_device(dev)
         d.save()
@@ -38,35 +43,16 @@ class Network():
             with open("store/network.json", 'r') as f:
                 raw = json.load(f)
                 self.data = raw["data"]
+                self.attr = raw["attr"]
         except:
             LOGGER.error("Failed to load network data")
-
-    def save(self):
-        if not os.path.exists("store"):
-            os.makedirs("store")
-        with open("store/network.json", 'w') as f:
-            json.dump({"data": self.get_raw_data()}, f)
-
-        for d in self._devices:
-            d.save()
-
-    def load_devices(self):
-        for (root, dirs, files) in os.walk("store/devices/"):
-            dirs = [os.path.join(root, d) for d in dirs]
-
-            for dir in dirs:
-                if not os.path.exists(dir + "/device.json"):
-                    continue
-
-                with open(dir + "/device.json", 'r') as f:
-                    load = json.load(f)
-                    d = device.Device(load=load)
-                    self._devices.append(d)
-                    d.load_values()
+        self.load_children()
 
     def get_device(self, ieee):
         try:
-            dev = next(d for d in self._devices if d.ieee == ieee)
+            print(ieee)
+            print(self._children)
+            dev = next(d for d in self._children if d.ieee == ieee)
         except StopIteration:
             dev = None
         return dev
@@ -78,14 +64,14 @@ class Network():
 
     def get_data(self):
         tmp = self.get_raw_data()
-        for d in self._devices:
+        for d in self._children:
             tmp["device"].append(d.get_data())
 
         return tmp
 
     @asyncio.coroutine
     def change_state(self, id, data):
-        for dev in self._devices:
+        for dev in self._children:
             res = yield from dev.change_state(id, data)
             if res is not None:
                 return res
