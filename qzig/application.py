@@ -10,11 +10,11 @@ LOGGER = logging.getLogger(__name__)
 
 class Application():
 
-    def __init__(self, device, database):
+    def __init__(self, device, network_id, database, rootdir=""):
         self._dev = device
         self._database = database
+        self._network = network.Network(network_id, rootdir)
         self._devices = {}
-        self._network = network.Network("9e32e295-60be-4b9c-91d9-cd7942756496")
 
     @asyncio.coroutine
     def init(self):

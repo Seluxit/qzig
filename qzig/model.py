@@ -20,7 +20,7 @@ class Model():
         try:
             path = self._parent.path + self.name + "/" + self.id + "/"
         except AttributeError:
-            path = "store/"
+            path = self._rootdir + "store/"
         return path
 
     @property

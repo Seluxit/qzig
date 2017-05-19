@@ -2,14 +2,12 @@ import asyncio
 import logging
 import uuid
 import enum
-import os
-import json
 
-import bellows.zigbee.zcl.clusters.general as zigbee_clusters
+import bellows.zigbee.zcl.clusters.general as general_clusters
+import bellows.zigbee.zcl.clusters.measurement as measurement_clusters
 
 import qzig.model as model
 import qzig.state as state
-import qzig.util
 
 
 LOGGER = logging.getLogger(__name__)
@@ -119,7 +117,7 @@ class Value(model.Model):
         self.attr["cluster_id"] = cluster.cluster_id
         self._cluster = cluster
 
-        if self.attr["cluster_id"] == zigbee_clusters.OnOff.cluster_id:
+        if self.attr["cluster_id"] == general_clusters.OnOff.cluster_id:
             self.data["name"] = "On/Off"
             self.data["permission"] = ValuePermission.READ_WRITE
             self.data["type"] = "On/Off"
@@ -129,7 +127,7 @@ class Value(model.Model):
             self.data["number"].unit = "boolean"
 
             self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
-        elif self.attr["cluster_id"] == zigbee_clusters.Identify.cluster_id:
+        elif self.attr["cluster_id"] == general_clusters.Identify.cluster_id:
             self.data["name"] = "Identify"
             self.data["permission"] = ValuePermission.WRITE_ONLY
             self.data["type"] = "Identify"
@@ -139,6 +137,16 @@ class Value(model.Model):
             self.data["number"].unit = "seconds"
 
             self.add_states([state.StateType.CONTROL])
+        elif self.attr["cluster_id"] == measurement_clusters.TemperatureMeasurement.cluster_id:
+            self.data["name"] = "Temperature"
+            self.data["permission"] = ValuePermission.READ_ONLY
+            self.data["type"] = "Temperature"
+            self.data["number"].min = -100
+            self.data["number"].max = 100
+            self.data["number"].step = 0.1
+            self.data["number"].unit = "celcius"
+
+            self.add_states([state.StateType.REPORT])
         else:
             self.data = None
 
@@ -186,7 +194,7 @@ class Value(model.Model):
                 if s.data["type"] == state.StateType.REPORT:
                     return "Report state can't be changed"
 
-                if self.cluster_id == zigbee_clusters.OnOff.cluster_id:
+                if self.cluster_id == general_clusters.OnOff.cluster_id:
                     if data["data"] == "1":
                         v = yield from self._cluster.on()
                     else:
@@ -195,7 +203,7 @@ class Value(model.Model):
                     print(v)
                     self.save()
                     return True
-                elif self.cluster_id == zigbee_clusters.Identify.cluster_id:
+                elif self.cluster_id == general_clusters.Identify.cluster_id:
                     v = yield from self._cluster.identify(int(data["data"]))
                     print(v)
                     return True

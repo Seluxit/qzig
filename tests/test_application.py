@@ -1,68 +1,62 @@
-import asyncio
-from unittest import mock
-
-import pytest
-
-import bellows
-import qzig.application as application
-import qzig
+import tests.util as util
+from tests.util import MockDevice, MockEndpoint, MockCluster
 
 
-@pytest.fixture
-def app():
-    dev = "/dev/null"
-    db = "test.db"
-    app = application.Application(dev, db)
+def test_init(app, tmpdir, store):
+    util._startup(app)
 
-    bellows.ezsp.EZSP = mock.MagicMock()
-    con_mock = mock.MagicMock()
-
-    @property
-    def devices():
-        return [("11:22:33:44:55:66", mock.MagicMock())]
-
-    con_mock.devices = mock.MagicMock()
-    con_mock.devices.items = devices
-    bellows.zigbee.application.ControllerApplication = con_mock
-
-    rpc_transport = mock.MagicMock()
-    connection_future = asyncio.Future()
-
-    rpc = qzig.json_rpc.JsonRPC(app, connection_future)
-
-    @asyncio.coroutine
-    def connect(*args, **kwargs):
-        return []
-
-    @asyncio.coroutine
-    def rpc_connect(*args, **kwargs):
-        rpc.connection_made(rpc_transport)
-        return rpc
-
-    bellows.zigbee.application.ControllerApplication.connect = connect
-
-    qzig.json_rpc.connect = rpc_connect
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(app.init())
-
-    assert app._rpc == rpc
-    assert rpc._transport == rpc_transport
-
-    # assert app._zb.devices.items.call_count == 1
-
-    yield app
-
-    app.close()
+    assert app._zb.app.add_listener.call_count == 1
+    assert len(tmpdir.listdir()) == 0
+    assert len(store.listdir()) == 1
+    assert str(store.listdir()[0]).endswith("network.json")
 
 
-def test_init(app):
-    assert app._network is not None
+def test_only_zigbee_devices(app, store):
+    device = MockDevice("11:22:33", 1)
+    devices = {"device1": device}
+    util._startup(app, devices)
+
+    assert len(store.listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
 
 
-def test_connect(app):
-    assert app._rpc._transport.write.call_count == 1
+def test_only_zigbee_device_and_endpoint(app, store):
+    endpoint = MockEndpoint(1)
+    device = MockDevice("11:22:33", 1)
+    device.endpoints[1] = endpoint
+    devices = {"device1": device}
+    util._startup(app, devices)
 
-    assert app._rpc._pending[0] == 1
-    app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"result":true}')
-    assert app._rpc._pending[0] == -1
+    assert len(store.listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
+    assert len((store + "/device").listdir()[0].listdir()) == 1
+
+
+def test_zigbee_device_and_endpoint_and_cluster(app, store):
+    endpoint = MockEndpoint(1)
+    endpoint.clusters[6] = MockCluster(6)
+    device = MockDevice("11:22:33", 1)
+    device.endpoints[1] = endpoint
+    devices = {"device1": device}
+    util._startup(app, devices)
+
+    assert len(store.listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
+    assert len((store + "/device").listdir()[0].listdir()) == 2
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
+    assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()) == 2
+    assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()[0].listdir()) == 1
+
+
+def test_zigbee_device_and_endpoint_and_many_cluster(app):
+    endpoint = MockEndpoint(1)
+    for c in range(0, 100):
+        endpoint.clusters[c] = MockCluster(c)
+    device = MockDevice("11:22:33", 1)
+    device.endpoints[1] = endpoint
+    devices = {"device1": device}
+    util._startup(app, devices)
+
+    assert endpoint.clusters[0].add_listener.call_count == 0
+    assert endpoint.clusters[6].add_listener.call_count == 1

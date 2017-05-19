@@ -69,7 +69,6 @@ class JsonRPC(asyncio.Protocol):
             if item is self.Terminator:
                 break
             data, id = item
-            LOGGER.debug("Sending: %s", data)
             if id is -1:
                 self._transport.write(data.encode())
             else:
@@ -106,13 +105,13 @@ class JsonRPC(asyncio.Protocol):
                 self._send_error(item["id"], str(result))
 
     def _send(self, rpc, id):
-        print(json.dumps(rpc,
-                         cls=qzig.util.QZigEncoder,
-                         sort_keys=True,
-                         indent=4,
-                         separators=(',', ': ')))
-        #rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
-        #self._sendq.put_nowait((rpc, id))
+        LOGGER.debug(json.dumps(rpc,
+                                cls=qzig.util.QZigEncoder,
+                                sort_keys=True,
+                                indent=4,
+                                separators=(',', ': ')))
+        rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
+        self._sendq.put_nowait((rpc, id))
 
     def _send_result(self, id, result):
         rpc = {

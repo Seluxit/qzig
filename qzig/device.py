@@ -1,8 +1,7 @@
 import asyncio
 import logging
 import uuid
-import os
-import json
+import sys
 
 import qzig.model as model
 import qzig.value as value
@@ -85,22 +84,28 @@ class Device(model.Model):
 
     @asyncio.coroutine
     def read_device_info(self):
-        if 1 not in self._dev.endpoints:
-            LOGGER.error("Device %d do not have endpoint 1",
-                         str(self._dev.ieee))
-            return
-        endp = self._dev.endpoints[1]
-        if 0 not in endp.clusters:
-            LOGGER.error("Device %d do not have cluster 0 on endpoint 1",
-                         str(self._dev.ieee))
-            return
-        cluster = endp.clusters[0]
+        for e_id in self._dev.endpoints:
+            if e_id is 0:
+                continue
 
-        LOGGER.debug("Reading attributes")
-        v = yield from cluster.read_attributes([0, 1, 2, 3, 4, 5])
-        self._handle_attributes_reply(v)
-        v = yield from cluster.read_attributes([10])
-        self._handle_attributes_reply(v)
+            endp = self._dev.endpoints[e_id]
+            if 0 not in endp.clusters:
+                LOGGER.error("Device %s do not have cluster 0 on endpoint 1",
+                             str(self._dev.ieee))
+                continue
+            cluster = endp.clusters[0]
+
+            LOGGER.debug("Reading attributes")
+            try:
+                v = yield from cluster.read_attributes([0, 1, 2, 3, 4, 5])
+                self._handle_attributes_reply(v)
+                v = yield from cluster.read_attributes([10])
+                self._handle_attributes_reply(v)
+            except: # pragma: no cover
+                e = sys.exc_info()[0]
+                LOGGER.exception(e)
+
+            return
 
     def _handle_attributes_reply(self, attr):
         if attr[1]:

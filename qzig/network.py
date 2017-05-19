@@ -1,8 +1,6 @@
 import asyncio
 import logging
-import uuid
 import json
-import os
 
 import qzig.model as model
 import qzig.device as device
@@ -12,10 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Network(model.Model):
 
-    def __init__(self, id=None):
-        if id is None:
-            id = str(uuid.uuid4())
-
+    def __init__(self, id, rootdir=""):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:network-1.1",
             ":id": id,
@@ -25,6 +20,7 @@ class Network(model.Model):
         self.attr = {}
         self._children = []
         self._child_class = device.Device
+        self._rootdir = rootdir
 
     @asyncio.coroutine
     def add_device(self, dev):
@@ -45,13 +41,11 @@ class Network(model.Model):
                 self.data = raw["data"]
                 self.attr = raw["attr"]
         except:
-            LOGGER.error("Failed to load network data")
+            LOGGER.exception("Failed to load network data")
         self.load_children()
 
     def get_device(self, ieee):
         try:
-            print(ieee)
-            print(self._children)
             dev = next(d for d in self._children if d.ieee == ieee)
         except StopIteration:
             dev = None
