@@ -1,3 +1,4 @@
+import os
 import tests.util as util
 from tests.util import MockDevice, MockEndpoint, MockCluster
 
@@ -60,3 +61,23 @@ def test_zigbee_device_and_endpoint_and_many_cluster(app):
 
     assert endpoint.clusters[0].add_listener.call_count == 0
     assert endpoint.clusters[6].add_listener.call_count == 1
+
+
+def test_load_json(app, tmpdir, store):
+    data = tmpdir + "/../test_zigbee_device_and_endpoin0store/"
+    os.system("cp -rf %s %s" % (data, store))
+
+    endpoint = MockEndpoint(1)
+    endpoint.clusters[6] = MockCluster(6)
+    device = MockDevice("11:22:33", 1)
+    device.endpoints[1] = endpoint
+    devices = {"device1": device}
+    util._startup(app, devices)
+
+    assert len(store.listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
+    assert len((store + "/device").listdir()[0].listdir()) == 2
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
+    assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()) == 2
+    assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()[0].listdir()) == 1

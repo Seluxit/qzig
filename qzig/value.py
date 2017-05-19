@@ -156,6 +156,12 @@ class Value(model.Model):
     def cluster_command(self, aps_frame, tsn, command_id, args):
         LOGGER.debug("APS: %d TSN: %d CMD: %d ARGS %s", aps_frame, tsn, command_id, args)
 
+    def attribute_updated(self, *args):
+        LOGGER.debug(args)
+
+    def zdo_command(self, *args):
+        LOGGER.debug(args)
+
     def add_states(self, types):
         for t in types:
             s = self.get_state(t.value)

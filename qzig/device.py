@@ -101,7 +101,7 @@ class Device(model.Model):
                 self._handle_attributes_reply(v)
                 v = yield from cluster.read_attributes([10])
                 self._handle_attributes_reply(v)
-            except: # pragma: no cover
+            except:  # pragma: no cover
                 e = sys.exc_info()[0]
                 LOGGER.exception(e)
 

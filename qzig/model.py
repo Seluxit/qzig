@@ -8,13 +8,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Model():
-    def _update_data(self):
-        pass
-
-    def get_data(self):
-        self.update_data()
-        return self.data
-
     @property
     def path(self):
         try:
