@@ -67,7 +67,7 @@ class JsonRPC(asyncio.Protocol):
         while True:
             item = yield from self._sendq.get()
             if item is self.Terminator:
-                break
+                break  # pragma: no cover
             data, id = item
             if id is -1:
                 self._transport.write(data.encode())
@@ -93,7 +93,7 @@ class JsonRPC(asyncio.Protocol):
         while True:
             item = yield from self._reqq.get()
             if item is self.Terminator:
-                break
+                break  # pragma: no cover
             LOGGER.debug(item)
             method = item["method"]
             params = item["params"]
@@ -151,7 +151,7 @@ class JsonRPC(asyncio.Protocol):
 
 
 @asyncio.coroutine
-def connect(model):
+def connect(model):  # pragma: no cover
     loop = asyncio.get_event_loop()
 
     connection_future = asyncio.Future()

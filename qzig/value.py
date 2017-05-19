@@ -102,14 +102,14 @@ class Value(model.Model):
 
         if "number" in self.data:
             self.data["number"] = ValueNumberType(self.data["number"])
-        elif "set" in self.data:
-            self.data["set"] = ValueSetType(self.data["set"])
-        elif "string" in self.data:
-            self.data["string"] = ValueStringType(self.data["string"])
-        elif "blob" in self.data:
-            self.data["blob"] = ValueBlobType(self.data["blob"])
-        elif "xml" in self.data:
-            self.data["xml"] = ValueSetType(self.data["xml"])
+        # elif "set" in self.data:
+        #    self.data["set"] = ValueSetType(self.data["set"])
+        # elif "string" in self.data:
+        #    self.data["string"] = ValueStringType(self.data["string"])
+        # elif "blob" in self.data:
+        #     self.data["blob"] = ValueBlobType(self.data["blob"])
+        # elif "xml" in self.data:
+        #    self.data["xml"] = ValueSetType(self.data["xml"])
 
     def parse_cluster(self, endpoint, cluster):
         self.attr["endpoint_id"] = endpoint.endpoint_id
@@ -213,7 +213,5 @@ class Value(model.Model):
                     v = yield from self._cluster.identify(int(data["data"]))
                     print(v)
                     return True
-                else:
-                    return False
 
         return None

@@ -39,7 +39,7 @@ class ZigBee():
                 if epid == 0:
                     continue
                 if ep.status == bellows.zigbee.endpoint.Status.NEW:
-                    LOGGER.info("    %s: Uninitialized")
+                    LOGGER.info("    %s: Uninitialized")  # pragma: no cover
                 else:
                     LOGGER.info(
                         "    %s: profile=0x%02x, device_type=%s" % (
@@ -60,7 +60,6 @@ class ZigBee():
         self.app._ezsp.close()
 
     def devices(self):
-        print("devices")
         return self.app.devices.items()
 
     # Callbacks

@@ -60,20 +60,19 @@ class Application():
                 return res
         else:
             return "Invalid service (%s) in url" % service
-        return True
 
     @asyncio.coroutine
     def POST(self, url, data):
         LOGGER.debug(url)
         LOGGER.debug(data)
-        return True
+        return False
 
     @asyncio.coroutine
     def GET(self, url):
         LOGGER.debug(url)
-        return True
+        return False
 
     @asyncio.coroutine
     def DELETE(self, url):
         LOGGER.debug(url)
-        return True
+        return False

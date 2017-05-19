@@ -34,11 +34,7 @@ def test_only_zigbee_device_and_endpoint(app, store):
 
 
 def test_zigbee_device_and_endpoint_and_cluster(app, store):
-    endpoint = MockEndpoint(1)
-    endpoint.clusters[6] = MockCluster(6)
-    device = MockDevice("11:22:33", 1)
-    device.endpoints[1] = endpoint
-    devices = {"device1": device}
+    devices = util._get_device()
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
@@ -54,6 +50,7 @@ def test_zigbee_device_and_endpoint_and_many_cluster(app):
     endpoint = MockEndpoint(1)
     for c in range(0, 100):
         endpoint.clusters[c] = MockCluster(c)
+    endpoint.clusters[0x0402] = MockCluster(0x0402)
     device = MockDevice("11:22:33", 1)
     device.endpoints[1] = endpoint
     devices = {"device1": device}
@@ -81,3 +78,9 @@ def test_load_json(app, tmpdir, store):
     assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
     assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()) == 2
     assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()[0].listdir()) == 1
+
+
+def test_disconnect_from_server(app):
+    util._startup(app)
+
+    app._rpc.connection_lost(ValueError("Test"))

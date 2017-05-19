@@ -36,12 +36,13 @@ class Network(model.Model):
 
     def load(self):
         try:
-            with open("store/network.json", 'r') as f:
+            with open(self.path + "network.json", 'r') as f:
                 raw = json.load(f)
                 self.data = raw["data"]
                 self.attr = raw["attr"]
         except:
             LOGGER.exception("Failed to load network data")
+
         self.load_children()
 
     def get_device(self, ieee):

@@ -16,12 +16,12 @@ class QZigEncoder(json.JSONEncoder):
             return obj.value
         if type(obj) is value.ValueNumberType:
             return obj.__dict__
-        if type(obj) is value.ValueSetType:
-            return obj.__dict__
-        if type(obj) is value.ValueStringType:
-            return obj.__dict__
-        if type(obj) is value.ValueBlobType:
-            return obj.__dict__
-        if type(obj) is value.ValueXmlType:
-            return obj.__dict__
-        return json.JSONEncoder.default(self, obj)
+        # if type(obj) is value.ValueSetType:
+        #    return obj.__dict__
+        # if type(obj) is value.ValueStringType:
+        #    return obj.__dict__
+        # if type(obj) is value.ValueBlobType:
+        #    return obj.__dict__
+        # if type(obj) is value.ValueXmlType:
+        #    return obj.__dict__
+        # return json.JSONEncoder.default(self, obj)
