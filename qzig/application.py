@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import logging
 
@@ -30,8 +31,12 @@ class Application():
         self._rpc = yield from json_rpc.connect(self)
 
     def close(self):
-        self._zb.close()
-        self._rpc.close()
+        try:
+            self._zb.close()
+            self._rpc.close()
+        except:  # pragma: no cover
+            e = sys.exc_info()[0]
+            LOGGER.exception(e)
 
     def _load(self):
         self._network.load()
