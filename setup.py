@@ -10,8 +10,9 @@ setup(
     keywords="zigbee q seluxit converter",
     url="http://q.seluxit.com",
     packages=find_packages(exclude=['*.tests']),
+    scripts=["qzig/main.py"],
     entry_points={
-        'console_scripts': ['qzig=qzig:main'],
+        'console_scripts': ['qzig=qzig.main:main'],
     },
     install_requires=[
         'bellows',
