@@ -43,6 +43,9 @@ class State(model.Model):
             "data": "0"
         }
 
+    def _parse(self):
+        self.data["type"] = StateType(self.data["type"])
+
     @property
     def type(self):
         return self.data["type"]
@@ -58,3 +61,19 @@ class State(model.Model):
     def get_data(self):
         tmp = self.get_raw_data()
         return tmp
+
+    def attribute_updated(self, attribute, data):
+        LOGGER.debug("%d => %d" % (attribute, data))
+        if attribute != 0:
+            LOGGER.debug("We only handle attribute 0 for now")
+            return
+
+        self.data["timestamp"] = self.get_timestamp()
+        self.data["data"] = str(data)
+
+        self.save()
+
+        self.send("", self.get_data())
+
+    def zdo_command(self, *args):
+        LOGGER.debug(args)

@@ -1,6 +1,4 @@
 import asyncio
-from unittest import mock
-
 import bellows
 
 app_devices = {}
@@ -12,7 +10,7 @@ class ControllerMock():
         self.nwk = 0
         self.ieee = "11:22:33:44:55"
         self.devices = app_devices
-        self.add_listener = mock.MagicMock()
+        self._cb = None
 
     @asyncio.coroutine
     def startup(self, opt):
@@ -21,6 +19,9 @@ class ControllerMock():
     @asyncio.coroutine
     def connect(*args, **kwargs):
         return []
+
+    def add_listener(self, obj):
+        self._cb = obj
 
 
 class MockDevice():
@@ -43,7 +44,7 @@ class MockCluster():
     def __init__(self, id):
         self.name = "Mock"
         self.cluster_id = id
-        self.add_listener = mock.MagicMock()
+        self._cb = None
         self.reply_count = 0
 
     @asyncio.coroutine
@@ -67,6 +68,9 @@ class MockCluster():
     @asyncio.coroutine
     def identify(self, timeout):
         pass
+
+    def add_listener(self, obj):
+        self._cb = obj
 
 
 def _startup(app, devs={}):

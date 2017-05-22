@@ -154,6 +154,9 @@ class JsonRPC(asyncio.Protocol):
     def post(self, url, data):
         return self._rpc("POST", url, data)
 
+    def put(self, url, data):
+        return self._rpc("PUT", url, data)
+
 
 @asyncio.coroutine
 def connect(model):  # pragma: no cover

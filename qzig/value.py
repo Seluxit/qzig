@@ -151,20 +151,13 @@ class Value(model.Model):
             self.data = None
 
         if self.data is not None:
-            cluster.add_listener(self)
-
-    def cluster_command(self, aps_frame, tsn, command_id, args):
-        LOGGER.debug("APS: %d TSN: %d CMD: %d ARGS %s", aps_frame, tsn, command_id, args)
-
-    def attribute_updated(self, *args):
-        LOGGER.debug(args)
-
-    def zdo_command(self, *args):
-        LOGGER.debug(args)
+            rep = self.get_state(state.StateType.REPORT)
+            if rep is not None:
+                cluster.add_listener(rep)
 
     def add_states(self, types):
         for t in types:
-            s = self.get_state(t.value)
+            s = self.get_state(t)
             if s is None:
                 s = state.State(self, t)
                 self._children.append(s)

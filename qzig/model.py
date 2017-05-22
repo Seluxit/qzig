@@ -56,9 +56,6 @@ class Model():
             for c in self._children:
                 c.save()
 
-    def _parse(self):
-        pass
-
     def _load(self, load):
         self.data = load["data"]
         self.attr = load["attr"]
@@ -77,3 +74,8 @@ class Model():
                     c = self._child_class(self, load=load)
                     self._children.append(c)
                     c.load_children()
+
+    def send(self, url, data):
+        if hasattr(self, "_parent"):
+            url = "/" + self.name + "/" + self.id + url
+            self._parent.send(url, data)

@@ -14,7 +14,7 @@ class Application():
     def __init__(self, device, network_id, database, rootdir=""):
         self._dev = device
         self._database = database
-        self._network = network.Network(network_id, rootdir)
+        self._network = network.Network(self, network_id, rootdir)
         self._devices = {}
 
     @asyncio.coroutine
@@ -43,6 +43,9 @@ class Application():
 
         for ieee, dev in self._zb.devices():
             yield from self._network.add_device(dev)
+
+    def send(self, url, data):
+        self._rpc.put(url, data)
 
     def _send_full_network(self):
         self._rpc.post("/network", self._network.get_data())

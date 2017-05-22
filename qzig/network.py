@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import json
+import os
 
 import qzig.model as model
 import qzig.device as device
@@ -10,7 +11,8 @@ LOGGER = logging.getLogger(__name__)
 
 class Network(model.Model):
 
-    def __init__(self, id, rootdir=""):
+    def __init__(self, parent, id, rootdir=""):
+        self._parent = parent
         self.data = {
             ":type": "urn:seluxit:xml:bastard:network-1.1",
             ":id": id,
@@ -36,10 +38,11 @@ class Network(model.Model):
 
     def load(self):
         try:
-            with open(self.path + "network.json", 'r') as f:
-                raw = json.load(f)
-                self.data = raw["data"]
-                self.attr = raw["attr"]
+            if os.path.exists(self.path + "network.json"):
+                with open(self.path + "network.json", 'r') as f:
+                    raw = json.load(f)
+                    self.data = raw["data"]
+                    self.attr = raw["attr"]
         except:
             LOGGER.exception("Failed to load network data")
 

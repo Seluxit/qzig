@@ -6,7 +6,7 @@ from tests.util import MockDevice, MockEndpoint, MockCluster
 def test_init(app, tmpdir, store):
     util._startup(app)
 
-    assert app._zb.app.add_listener.call_count == 1
+    assert app._zb.app._cb is not None
     assert len(tmpdir.listdir()) == 0
     assert len(store.listdir()) == 1
     assert str(store.listdir()[0]).endswith("network.json")
@@ -56,8 +56,8 @@ def test_zigbee_device_and_endpoint_and_many_cluster(app):
     devices = {"device1": device}
     util._startup(app, devices)
 
-    assert endpoint.clusters[0].add_listener.call_count == 0
-    assert endpoint.clusters[6].add_listener.call_count == 1
+    assert endpoint.clusters[0]._cb is None
+    assert endpoint.clusters[6]._cb is not None
 
 
 def test_load_json(app, tmpdir, store):
@@ -78,6 +78,15 @@ def test_load_json(app, tmpdir, store):
     assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
     assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()) == 2
     assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()[0].listdir()) == 1
+
+
+def test_wrong_network_data(app, store):
+    os.makedirs(str(store))
+    store += "/network.json"
+    with open(str(store), 'w') as f:
+        f.write("WRONG")
+
+    util._startup(app)
 
 
 def test_disconnect_from_server(app):
