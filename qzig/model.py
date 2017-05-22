@@ -56,6 +56,9 @@ class Model():
             for c in self._children:
                 c.save()
 
+    def _parse(self):  # pragma: no cover
+        pass
+
     def _load(self, load):
         self.data = load["data"]
         self.attr = load["attr"]

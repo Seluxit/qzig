@@ -93,3 +93,9 @@ def test_disconnect_from_server(app):
     util._startup(app)
 
     app._rpc.connection_lost(ValueError("Test"))
+
+
+def test_wrong_devices_from_server(app):
+    util._startup(app=app, server_devices=["1"])
+
+    assert "/network/test_id/device/1" in app._rpc._transport.write.call_args[0][0].decode()

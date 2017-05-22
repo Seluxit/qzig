@@ -73,11 +73,11 @@ class JsonRPC(asyncio.Protocol):
             item = yield from self._sendq.get()
             if item is self.Terminator:
                 break  # pragma: no cover
-            data, id = item
+            data, id, fut = item
             if id is -1:
                 self._transport.write(data.encode())
             else:
-                self._pending = (id, asyncio.Future())
+                self._pending = (id, fut)
                 self._transport.write(data.encode())
                 yield from self._pending[1]
 
@@ -86,9 +86,9 @@ class JsonRPC(asyncio.Protocol):
 
         if "error" in rpc:
             LOGGER.error(rpc["error"])
-            pending[1].set_result(False)
+            pending[1].set_result(rpc["error"])
         else:
-            pending[1].set_result(True)
+            pending[1].set_result(rpc["result"])
 
     def _handle_request(self, rpc):
         self._reqq.put_nowait(rpc)
@@ -116,7 +116,9 @@ class JsonRPC(asyncio.Protocol):
                                 indent=4,
                                 separators=(',', ': ')))
         rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
-        self._sendq.put_nowait((rpc, id))
+        fut = asyncio.Future()
+        self._sendq.put_nowait((rpc, id, fut))
+        return fut
 
     def _send_result(self, id, result):
         rpc = {
@@ -137,7 +139,7 @@ class JsonRPC(asyncio.Protocol):
         }
         self._send(rpc, -1)
 
-    def _rpc(self, method, url, data):
+    def _rpc(self, method, url, data=None):
         id = self._id
         self._id = self._id + 1
         rpc = {
@@ -145,17 +147,27 @@ class JsonRPC(asyncio.Protocol):
             "method": method,
             "id": id,
             "params": {
-                "url": url,
-                "data": data
+                "url": url
             }
         }
-        self._send(rpc, id)
+        if data is not None:
+            rpc["params"]["data"] = data
+
+        return self._send(rpc, id)
 
     def post(self, url, data):
         return self._rpc("POST", url, data)
 
     def put(self, url, data):
         return self._rpc("PUT", url, data)
+
+    @asyncio.coroutine
+    def get(self, url):
+        data = yield from self._rpc("GET", url)
+        return data
+
+    def delete(self, url):
+        self._rpc("DELETE", url)
 
 
 @asyncio.coroutine
@@ -172,6 +184,9 @@ def connect(model):  # pragma: no cover
 
     host = "q-wot.com"
     port = 21005
+
+    # host = "localhost"
+    # port = 42005
 
     yield from loop.create_connection(
         lambda: protocol,

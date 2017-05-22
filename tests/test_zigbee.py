@@ -39,10 +39,12 @@ def test_zigbee_attribute_update(app):
 
     cluster._cb.attribute_updated(0, 1234567890)
 
+    count = app._rpc._transport.write.call_count
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(asyncio.sleep(.1))
 
-    assert app._rpc._transport.write.call_count == 2
+    assert app._rpc._transport.write.call_count == (count + 1)
     assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
@@ -57,10 +59,12 @@ def test_zigbee_wrong_attribute_update(app):
 
     cluster._cb.attribute_updated(1, 0)
 
+    count = app._rpc._transport.write.call_count
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(asyncio.sleep(.1))
 
-    assert app._rpc._transport.write.call_count == 1
+    assert app._rpc._transport.write.call_count == count
 
 
 def test_zigbee_attribute_update_error_reply(app):

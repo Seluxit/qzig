@@ -41,11 +41,9 @@ class Device(model.Model):
             "value": []
         }
         self.attr = {
-            "ieee": ""
+            "ieee": "",
+            "init": True
         }
-
-    def _parse(self):
-        self._init_device = False
 
     @property
     def ieee(self):
@@ -55,7 +53,7 @@ class Device(model.Model):
     def parse_device(self, dev):
         self._dev = dev
         self.attr["ieee"] = str(dev.ieee)
-        if self._init_device:
+        if self.attr["init"]:
             yield from self.read_device_info()
 
         for e_id in self._dev.endpoints:
@@ -105,6 +103,7 @@ class Device(model.Model):
                 e = sys.exc_info()[0]
                 LOGGER.exception(e)
 
+            self.attr["init"] = False
             return
 
     def _handle_attributes_reply(self, attr):

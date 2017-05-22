@@ -22,6 +22,7 @@ class Application():
         yield from self.connect()
         yield from self._load()
         self._send_full_network()
+        yield from self._clean_server_devices()
 
     @asyncio.coroutine
     def connect(self):
@@ -50,6 +51,16 @@ class Application():
     def _send_full_network(self):
         self._rpc.post("/network", self._network.get_data())
         self._network.save()
+
+    @asyncio.coroutine
+    def _clean_server_devices(self):
+        devices = yield from self._rpc.get("/network/" + self._network.id + "/device")
+        for id in devices[":id"]:
+            if id == self._network.id:
+                continue  # pragma: no cover
+            dev = self._network.get_device("", id)
+            if dev is None:
+                self._rpc.delete("/network/" + self._network.id + "/device/" + id)
 
     @asyncio.coroutine
     def PUT(self, url, data):

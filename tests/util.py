@@ -1,5 +1,6 @@
 import asyncio
 import bellows
+import json
 
 app_devices = {}
 
@@ -73,18 +74,35 @@ class MockCluster():
         self._cb = obj
 
 
-def _startup(app, devs={}):
+@asyncio.coroutine
+def _delayed_reply(app, server_devices):
+    yield from asyncio.sleep(0.01)
+    app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"result":true}')
+    yield from asyncio.sleep(0.01)
+    data = {
+        "type": "urn:seluxit:xml:bastard:device-1.1",
+        ":type": "urn:seluxit:xml:bastard:idlist-1.0",
+        ":id": server_devices
+    }
+    rpc = {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": data
+    }
+    app._rpc.data_received(json.dumps(rpc).encode())
+
+
+def _startup(app, devs={}, server_devices=[]):
+    asyncio.ensure_future(_delayed_reply(app, server_devices))
     global app_devices
     app_devices = devs
     loop = asyncio.get_event_loop()
     loop.run_until_complete(app.init())
 
     assert app._network is not None
-    assert app._rpc._transport.write.call_count == 1
-
-    assert app._rpc._pending[0] == 1
-    app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"result":true}')
-    assert app._rpc._pending[0] == -1
+    if len(server_devices) == 0:
+        assert app._rpc._transport.write.call_count == 2
+        assert app._rpc._pending[0] == -1
 
 
 def _get_device(cluster=6):

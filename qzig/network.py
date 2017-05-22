@@ -48,9 +48,10 @@ class Network(model.Model):
 
         self.load_children()
 
-    def get_device(self, ieee):
+    def get_device(self, ieee, id=None):
         try:
-            dev = next(d for d in self._children if d.ieee == ieee)
+            dev = next(d for d in self._children
+                       if d.ieee == ieee or d.id == id)
         except StopIteration:
             dev = None
         return dev
