@@ -17,6 +17,23 @@ class Application():
         self._network = network.Network(self, network_id, rootdir)
         self._devices = {}
 
+    def run(self):  # pragma: no cover
+        """Main event loop"""
+        loop = asyncio.get_event_loop()
+        try:
+            loop.run_until_complete(self.init())
+            loop.run_forever()
+        except KeyboardInterrupt as e:
+            LOGGER.warning("Caught keyboard interrupt. Canceling tasks...")
+            self.close()
+            for task in asyncio.Task.all_tasks():
+                task.cancel()
+
+            loop.run_until_complete(asyncio.sleep(.1))
+        finally:
+            LOGGER.debug("Stopping loop")
+            loop.close()
+
     @asyncio.coroutine
     def init(self):
         yield from self.connect()

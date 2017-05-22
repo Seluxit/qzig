@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import asyncio
 import logging
 
 import qzig.application as application
@@ -35,23 +34,7 @@ def main():  # pragma: no cover
     network_id = "9e32e295-60be-4b9c-91d9-cd7942756496"
 
     app = application.Application(device, network_id, database)
-
-    # Main event loop
-    loop = asyncio.get_event_loop()
-    loop.set_debug(False)
-    try:
-        loop.run_until_complete(app.init())
-        loop.run_forever()
-    except KeyboardInterrupt as e:
-        print("Caught keyboard interrupt. Canceling tasks...")
-        app.close()
-        for task in asyncio.Task.all_tasks():
-            task.cancel()
-
-        loop.run_until_complete(asyncio.sleep(.1))
-    finally:
-        print("Stopping loop")
-        loop.close()
+    app.run()
 
 
 if __name__ == "__main__":  # pragma: no cover
