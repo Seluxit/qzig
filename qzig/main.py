@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-
 import qzig.application as application
-
-LOGGER = logging.getLogger(__name__)
 
 
 def setup_logging():
