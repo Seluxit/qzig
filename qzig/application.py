@@ -60,7 +60,8 @@ class Application():
     def _load(self):
         self._network.load()
 
-        self._network.add_gateway(self._gateway)
+        if self._gateway is not None:
+            self._network.add_gateway(self._gateway)
 
         for ieee, dev in self._zb.devices():
             yield from self._network.add_device(dev)

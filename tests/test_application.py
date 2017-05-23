@@ -13,15 +13,17 @@ def test_init(app, tmpdir, store):
 
 
 def test_only_zigbee_devices(app, store):
+    app._gateway = None
     device = MockDevice("11:22:33", 1)
     devices = {"device1": device}
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
-    assert len((store + "/device").listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
 
 
 def test_only_zigbee_device_and_endpoint(app, store):
+    app._gateway = None
     endpoint = MockEndpoint(1)
     device = MockDevice("11:22:33", 1)
     device.endpoints[1] = endpoint
@@ -29,16 +31,17 @@ def test_only_zigbee_device_and_endpoint(app, store):
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
-    assert len((store + "/device").listdir()) == 2
-    assert len((store + "/device").listdir()[1].listdir()) == 1
+    assert len((store + "/device").listdir()) == 1
+    assert len((store + "/device").listdir()[0].listdir()) == 1
 
 
 def test_zigbee_device_and_endpoint_and_cluster(app, store):
+    app._gateway = None
     devices = util._get_device()
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
-    assert len((store + "/device").listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
     assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
     assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
@@ -47,6 +50,7 @@ def test_zigbee_device_and_endpoint_and_cluster(app, store):
 
 
 def test_zigbee_device_and_endpoint_and_many_cluster(app):
+    app._gateway = None
     endpoint = MockEndpoint(1)
     for c in range(0, 100):
         endpoint.clusters[c] = MockCluster(c)
@@ -61,6 +65,7 @@ def test_zigbee_device_and_endpoint_and_many_cluster(app):
 
 
 def test_load_json(app, tmpdir, store):
+    app._gateway = None
     data = tmpdir + "/../test_zigbee_device_and_endpoin0store/"
     os.system("cp -rf %s %s" % (data, store))
 
@@ -72,7 +77,7 @@ def test_load_json(app, tmpdir, store):
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
-    assert len((store + "/device").listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
     assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
     assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
@@ -99,3 +104,19 @@ def test_wrong_devices_from_server(app):
     util._startup(app=app, server_devices=["1"])
 
     assert "/network/test_id/device/1" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_gateway_add(app, store):
+    util._startup(app)
+
+    assert len(store.listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
+
+
+def test_gateway_load(app, tmpdir, store):
+    data = tmpdir + "/../test_gateway_add0store/"
+    os.system("cp -rf %s %s" % (data, store))
+    util._startup(app)
+
+    assert len(store.listdir()) == 2
+    assert len((store + "/device").listdir()) == 1
