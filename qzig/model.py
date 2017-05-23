@@ -22,7 +22,8 @@ class Model():
 
     @property
     def id(self):
-        return self.data[":id"]
+        if self.data is not None:
+            return self.data[":id"]
 
     @property
     def name(self):
