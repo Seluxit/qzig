@@ -93,7 +93,7 @@ def _delayed_reply(app, server_devices):
 
 
 def _startup(app, devs={}, server_devices=[]):
-    async_fun = getattr(asyncio, "ensure_future", "async")
+    async_fun = getattr(asyncio, "ensure_future", asyncio.async)
     async_fun(_delayed_reply(app, server_devices))
     global app_devices
     app_devices = devs

@@ -33,7 +33,7 @@ class JsonRPC(asyncio.Protocol):
         self._transport = transport
         if self._connected_future is not None:
             self._connected_future.set_result(True)
-        async_fun = getattr(asyncio, "ensure_future", "async")
+        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
         self._task_send = async_fun(self._send_task())
         self._task_request = async_fun(self._request_task())
 
