@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import uuid
 import enum
@@ -185,26 +184,3 @@ class Value(model.Model):
         for s in self._children:
             tmp["state"].append(s.get_data())
         return tmp
-
-    @asyncio.coroutine
-    def change_state(self, id, data):
-        for s in self._children:
-            if s.data[":id"] == id:
-                if s.data["type"] == state.StateType.REPORT:
-                    return "Report state can't be changed"
-
-                if self.cluster_id == general_clusters.OnOff.cluster_id:
-                    if data["data"] == "1":
-                        v = yield from self._cluster.on()
-                    else:
-                        v = yield from self._cluster.off()
-
-                    print(v)
-                    self.save()
-                    return True
-                elif self.cluster_id == general_clusters.Identify.cluster_id:
-                    v = yield from self._cluster.identify(int(data["data"]))
-                    print(v)
-                    return True
-
-        return None

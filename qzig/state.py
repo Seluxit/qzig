@@ -1,9 +1,11 @@
+import asyncio
 import logging
 import uuid
 import enum
 import datetime
 
 import qzig.model as model
+import bellows.zigbee.zcl.clusters.general as general_clusters
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ class State(model.Model):
     def __init__(self, parent, state_type=None, id=None, load=None):
         self._parent = parent
         self.attr = {}
+        self._children = []
 
         if load is None:
             self._init(id, state_type)
@@ -49,6 +52,10 @@ class State(model.Model):
     @property
     def type(self):
         return self.data["type"]
+
+    @property
+    def cluster_id(self):
+        return self._parent.cluster_id
 
     def get_timestamp(self):
         t = str(datetime.datetime.utcnow()).split('.')[0]
@@ -77,3 +84,22 @@ class State(model.Model):
 
     def zdo_command(self, *args):
         LOGGER.debug(args)
+
+    @asyncio.coroutine
+    def change_state(self, data):
+        if self.type == StateType.REPORT:
+            return "Report state can't be changed"
+
+        if self.cluster_id == general_clusters.OnOff.cluster_id:
+            if data["data"] == "1":
+                v = yield from self._parent._cluster.on()
+            else:
+                v = yield from self._parent._cluster.off()
+
+            print(v)
+            self.save()
+            return True
+        elif self.cluster_id == general_clusters.Identify.cluster_id:
+            v = yield from self._parent._cluster.identify(int(data["data"]))
+            print(v)
+            return True

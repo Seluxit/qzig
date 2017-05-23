@@ -140,12 +140,3 @@ class Device(model.Model):
                 tmp["value"].append(d)
 
         return tmp
-
-    @asyncio.coroutine
-    def change_state(self, id, data):
-        for val in self._children:
-            res = yield from val.change_state(id, data)
-            if res is not None:
-                return res
-
-        return None

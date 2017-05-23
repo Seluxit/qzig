@@ -93,11 +93,12 @@ class Application():
         service = path[-2]
 
         if service == "state":
-            res = yield from self._network.change_state(id, data)
-            if res is None:
+            state = self._network.find_child(id)
+            if state is None:
                 return "Failed to find id %s" % id
-            else:
-                return res
+
+            res = yield from state.change_state(data)
+            return res
         else:
             return "Invalid service (%s) in url" % service
 

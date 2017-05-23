@@ -80,12 +80,3 @@ class Network(model.Model):
             tmp["device"].append(d.get_data())
 
         return tmp
-
-    @asyncio.coroutine
-    def change_state(self, id, data):
-        for dev in self._children:
-            res = yield from dev.change_state(id, data)
-            if res is not None:
-                return res
-
-        return None

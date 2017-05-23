@@ -82,3 +82,15 @@ class Model():
         if hasattr(self, "_parent"):
             url = "/" + self.name + "/" + self.id + url
             self._parent.send(url, data)
+
+    def find_child(self, id):
+        for c in self._children:
+            if c.id == id:
+                return c
+
+        for c in self._children:
+            res = c.find_child(id)
+            if res is not None:
+                return res
+
+        return None
