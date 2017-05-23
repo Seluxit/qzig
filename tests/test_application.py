@@ -4,6 +4,7 @@ from tests.util import MockDevice, MockEndpoint, MockCluster
 
 
 def test_init(app, tmpdir, store):
+    app._gateway = None
     util._startup(app)
 
     assert app._zb.app._cb is not None
