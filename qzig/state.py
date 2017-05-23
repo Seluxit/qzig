@@ -86,6 +86,13 @@ class State(model.Model):
         LOGGER.debug(args)
 
     @asyncio.coroutine
+    def _delayed_report(self, time, value):
+        s = self._parent.get_state(StateType.REPORT)
+        if s is not None:
+            yield from asyncio.sleep(time)
+            s.attribute_updated(0, value)
+
+    @asyncio.coroutine
     def change_state(self, data):
         if self.type == StateType.REPORT:
             return "Report state can't be changed"
@@ -102,4 +109,13 @@ class State(model.Model):
         elif self.cluster_id == general_clusters.Identify.cluster_id:
             v = yield from self._parent._cluster.identify(int(data["data"]))
             print(v)
+            return True
+        elif self.cluster_id == -1:
+            t = int(data["data"])
+            v = yield from self._parent._parent._parent._parent._zb.app.permit(t)
+            print(v)
+
+            async_fun = getattr(asyncio, "ensure_future", asyncio.async)
+            async_fun(self._delayed_report(t + 1, 0))
+
             return True

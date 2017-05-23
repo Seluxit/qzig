@@ -1,6 +1,7 @@
 import asyncio
 import bellows
 import json
+from unittest import mock
 
 app_devices = {}
 
@@ -12,6 +13,7 @@ class ControllerMock():
         self.ieee = "11:22:33:44:55"
         self.devices = app_devices
         self._cb = None
+        self.permit = mock.MagicMock()
 
     @asyncio.coroutine
     def startup(self, opt):
@@ -82,7 +84,7 @@ def _delayed_reply(app, server_devices):
     data = {
         "type": "urn:seluxit:xml:bastard:device-1.1",
         ":type": "urn:seluxit:xml:bastard:idlist-1.0",
-        ":id": server_devices
+        "id": server_devices
     }
     rpc = {
         "jsonrpc": "2.0",

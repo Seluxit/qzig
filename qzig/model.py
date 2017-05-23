@@ -36,6 +36,9 @@ class Model():
         except:
             return ""
 
+    def __str__(self):  # pragma: no cover
+        return "<%s attr: %s>" % (self.name, self.attr)
+
     def save(self):
         if self.data is None:
             return

@@ -61,11 +61,11 @@ class Application():
     def _load(self):
         self._network.load()
 
-        if self._gateway is not None:
-            self._network.add_gateway(self._gateway)
-
         for ieee, dev in self._zb.devices():
             yield from self._network.add_device(dev)
+
+        if self._gateway is not None:
+            self._network.add_gateway(self._gateway)
 
     def send(self, url, data):
         self._rpc.put(url, data)
@@ -77,9 +77,7 @@ class Application():
     @asyncio.coroutine
     def _clean_server_devices(self):
         devices = yield from self._rpc.get("/network/" + self._network.id + "/device")
-        for id in devices[":id"]:
-            if id == self._network.id:
-                continue  # pragma: no cover
+        for id in devices["id"]:
             dev = self._network.get_device("", id)
             if dev is None:
                 self._rpc.delete("/network/" + self._network.id + "/device/" + id)

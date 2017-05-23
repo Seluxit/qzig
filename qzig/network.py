@@ -47,7 +47,10 @@ class Network(model.Model):
             }
             self._children.remove(gw)
             new_gw = gw_class(self, load=data)
+            new_gw._children = gw._children
+
         self._children.append(new_gw)
+        new_gw.init_values()
 
     def load(self):
         try:

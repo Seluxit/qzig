@@ -62,14 +62,18 @@ class Device(model.Model):
             endpoint = self._dev.endpoints[e_id]
             for c_id in endpoint.clusters:
                 cluster = endpoint.clusters[c_id]
-                val = self.get_value(e_id, c_id)
-                if val is None:
-                    val = self._child_class(self)
-                    self._children.append(val)
-                else:
-                    val._parent = self
-
+                val = self.add_value(e_id, c_id)
                 val.parse_cluster(endpoint, cluster)
+
+    def add_value(self, endpoint_id, cluster_id):
+        val = self.get_value(endpoint_id, cluster_id)
+        if val is None:
+            val = self._child_class(self)
+            val.set_ids(endpoint_id, cluster_id)
+            self._children.append(val)
+        else:
+            val._parent = self
+        return val
 
     def get_value(self, endpoint, cluster):
         try:

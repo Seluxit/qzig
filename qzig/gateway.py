@@ -29,7 +29,15 @@ class Gateway(device.Device):
             "ieee": "gateway",
             "init": True
         }
+
+        val = self.add_value(-1, -1)
+        val.init_data()
         self.save()
+
+    def init_values(self):
+        val = self.add_value(-1, -1)
+        val.init_data()
+        val.save()
 
     @property
     def name(self):

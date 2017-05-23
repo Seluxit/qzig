@@ -87,6 +87,10 @@ class Value(model.Model):
             "state": []
         }
 
+    def set_ids(self, endpoint_id, cluster_id):
+        self.attr["endpoint_id"] = endpoint_id
+        self.attr["cluster_id"] = cluster_id
+
     @property
     def endpoint_id(self):
         return self.attr["endpoint_id"]
@@ -111,12 +115,28 @@ class Value(model.Model):
         #    self.data["xml"] = ValueSetType(self.data["xml"])
 
     def parse_cluster(self, endpoint, cluster):
-        self.attr["endpoint_id"] = endpoint.endpoint_id
         self._endpoint = endpoint
-        self.attr["cluster_id"] = cluster.cluster_id
         self._cluster = cluster
 
-        if self.attr["cluster_id"] == general_clusters.OnOff.cluster_id:
+        self.init_data()
+
+        if self.data is not None:
+            rep = self.get_state(state.StateType.REPORT)
+            if rep is not None:
+                cluster.add_listener(rep)
+
+    def init_data(self):
+        if self.attr["cluster_id"] == -1:
+            self.data["name"] = "Permit Join"
+            self.data["permission"] = ValuePermission.READ_WRITE
+            self.data["type"] = "Network Management"
+            self.data["number"].min = 0
+            self.data["number"].max = 250
+            self.data["number"].step = 1
+            self.data["number"].unit = "seconds"
+
+            self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
+        elif self.attr["cluster_id"] == general_clusters.OnOff.cluster_id:
             self.data["name"] = "On/Off"
             self.data["permission"] = ValuePermission.READ_WRITE
             self.data["type"] = "On/Off"
@@ -149,11 +169,6 @@ class Value(model.Model):
         else:
             self.data = None
 
-        if self.data is not None:
-            rep = self.get_state(state.StateType.REPORT)
-            if rep is not None:
-                cluster.add_listener(rep)
-
     def add_states(self, types):
         for t in types:
             s = self.get_state(t)
@@ -179,8 +194,10 @@ class Value(model.Model):
 
     def get_data(self):
         tmp = self.get_raw_data()
+        if tmp is None:
+            return tmp
         if len(self._children):
-            self.data["state"] = []
+            tmp["state"] = []
         for s in self._children:
             tmp["state"].append(s.get_data())
         return tmp
