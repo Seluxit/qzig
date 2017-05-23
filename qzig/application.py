@@ -6,6 +6,7 @@ import qzig.zigbee as zigbee
 import qzig.json_rpc as json_rpc
 import qzig.network as network
 import qzig.gateway as gateway
+import qzig.state as state
 
 LOGGER = logging.getLogger(__name__)
 
@@ -93,11 +94,14 @@ class Application():
         service = path[-2]
 
         if service == "state":
-            state = self._network.find_child(id)
-            if state is None:
+            s = self._network.find_child(id)
+            if s is None:
                 return "Failed to find id %s" % id
 
-            res = yield from state.change_state(data)
+            if type(s) != state.State:
+                return "ID is not a state"
+
+            res = yield from s.change_state(data)
             return res
         else:
             return "Invalid service (%s) in url" % service

@@ -139,3 +139,21 @@ def test_state_identify_change(app):
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_device_change_state(app):
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    id = app._network._children[1].id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.sleep(.1))
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
