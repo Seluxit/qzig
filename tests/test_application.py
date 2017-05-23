@@ -9,7 +9,7 @@ def test_init(app, tmpdir, store):
 
     assert app._zb.app._cb is not None
     assert len(tmpdir.listdir()) == 0
-    assert len(store.listdir()) == 2
+    assert len(store.listdir()) == 1
     assert str(store.listdir()[0]).endswith("network.json")
 
 

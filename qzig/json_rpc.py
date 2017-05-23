@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import sys
 import os
 import ssl
 import json
@@ -34,12 +33,9 @@ class JsonRPC(asyncio.Protocol):
         self._transport = transport
         if self._connected_future is not None:
             self._connected_future.set_result(True)
-        if sys.version_info >= (3, 5):
-            self._task_send = asyncio.ensure_future(self._send_task())
-            self._task_request = asyncio.ensure_future(self._request_task())
-        else:  # pragma: no cover
-            self._task_send = asyncio.async(self._send_task())
-            self._task_request = asyncio.async(self._request_task())
+        async_fun = getattr(asyncio, "ensure_future", "async")
+        self._task_send = async_fun(self._send_task())
+        self._task_request = async_fun(self._request_task())
 
     def data_received(self, data):
         """Callback when there is data received from the socket"""
