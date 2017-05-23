@@ -36,6 +36,19 @@ class Network(model.Model):
         yield from d.parse_device(dev)
         d.save()
 
+    def add_gateway(self, gw_class):
+        gw = self.get_device("gateway")
+        if gw is None:
+            new_gw = gw_class(self)
+        else:
+            data = {
+                "data": gw.data,
+                "attr": gw.attr
+            }
+            self._children.remove(gw)
+            new_gw = gw_class(self, load=data)
+        self._children.append(new_gw)
+
     def load(self):
         try:
             if os.path.exists(self.path + "network.json"):

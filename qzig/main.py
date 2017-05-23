@@ -30,10 +30,9 @@ def main():  # pragma: no cover
     setup_logging()
 
     device = "/dev/ttyACM1"
-    database = "qzig.db"
     network_id = "9e32e295-60be-4b9c-91d9-cd7942756496"
 
-    app = application.Application(device, network_id, database)
+    app = application.Application(device, network_id)
     app.run()
 
 

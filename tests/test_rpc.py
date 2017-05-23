@@ -81,7 +81,7 @@ def test_state_on_off_change(app):
     devices = util._get_device()
     util._startup(app, devices)
 
-    id = app._network._children[0]._children[0]._children[1].id
+    id = app._network._children[1]._children[0]._children[1].id
     rpc = util._rpc_state(id, "0")
 
     app._rpc.data_received(rpc.encode())
@@ -109,7 +109,7 @@ def test_state_report_change(app):
     devices = util._get_device()
     util._startup(app, devices)
 
-    id = app._network._children[0]._children[0]._children[0].id
+    id = app._network._children[1]._children[0]._children[0].id
     rpc = util._rpc_state(id, 0)
 
     app._rpc.data_received(rpc.encode())
@@ -127,7 +127,7 @@ def test_state_identify_change(app):
     devices = util._get_device(3)
     util._startup(app, devices)
 
-    id = app._network._children[0]._children[0]._children[0].id
+    id = app._network._children[1]._children[0]._children[0].id
     rpc = util._rpc_state(id, 0)
 
     app._rpc.data_received(rpc.encode())

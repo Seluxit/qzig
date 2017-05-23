@@ -5,17 +5,18 @@ import logging
 import qzig.zigbee as zigbee
 import qzig.json_rpc as json_rpc
 import qzig.network as network
+import qzig.gateway as gateway
 
 LOGGER = logging.getLogger(__name__)
 
 
 class Application():
 
-    def __init__(self, device, network_id, database, rootdir=""):
+    def __init__(self, device, network_id, gateway=gateway.Gateway, rootdir=""):
         self._dev = device
-        self._database = database
+        self._database = rootdir + "qzig.db"
         self._network = network.Network(self, network_id, rootdir)
-        self._devices = {}
+        self._gateway = gateway
 
     def run(self):  # pragma: no cover
         """Main event loop"""
@@ -58,6 +59,8 @@ class Application():
 
     def _load(self):
         self._network.load()
+
+        self._network.add_gateway(self._gateway)
 
         for ieee, dev in self._zb.devices():
             yield from self._network.add_device(dev)

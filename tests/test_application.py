@@ -8,7 +8,7 @@ def test_init(app, tmpdir, store):
 
     assert app._zb.app._cb is not None
     assert len(tmpdir.listdir()) == 0
-    assert len(store.listdir()) == 1
+    assert len(store.listdir()) == 2
     assert str(store.listdir()[0]).endswith("network.json")
 
 
@@ -18,7 +18,7 @@ def test_only_zigbee_devices(app, store):
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
-    assert len((store + "/device").listdir()) == 1
+    assert len((store + "/device").listdir()) == 2
 
 
 def test_only_zigbee_device_and_endpoint(app, store):
@@ -29,8 +29,8 @@ def test_only_zigbee_device_and_endpoint(app, store):
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
-    assert len((store + "/device").listdir()) == 1
-    assert len((store + "/device").listdir()[0].listdir()) == 1
+    assert len((store + "/device").listdir()) == 2
+    assert len((store + "/device").listdir()[1].listdir()) == 1
 
 
 def test_zigbee_device_and_endpoint_and_cluster(app, store):
@@ -38,7 +38,7 @@ def test_zigbee_device_and_endpoint_and_cluster(app, store):
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
-    assert len((store + "/device").listdir()) == 1
+    assert len((store + "/device").listdir()) == 2
     assert len((store + "/device").listdir()[0].listdir()) == 2
     assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
     assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
@@ -72,7 +72,7 @@ def test_load_json(app, tmpdir, store):
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
-    assert len((store + "/device").listdir()) == 1
+    assert len((store + "/device").listdir()) == 2
     assert len((store + "/device").listdir()[0].listdir()) == 2
     assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
     assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2

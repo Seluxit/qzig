@@ -1,5 +1,4 @@
 import asyncio
-import os
 from unittest import mock
 
 import pytest
@@ -20,8 +19,8 @@ def store(tmpdir):
 def app(tmpdir):
     dev = "/dev/null"
     id = "test_id"
-    db = os.path.join(str(tmpdir), 'test.db')
-    app = application.Application(dev, id, db, str(tmpdir))
+
+    app = application.Application(dev, id, rootdir=str(tmpdir))
 
     bellows.ezsp.EZSP = mock.MagicMock
     bellows.zigbee.application.ControllerApplication = util.ControllerMock

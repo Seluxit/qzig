@@ -22,7 +22,6 @@ class Device(model.Model):
             self._load(load)
 
     def _init(self, id):
-        self._init_device = True
         if id is None:
             id = str(uuid.uuid4())
 
