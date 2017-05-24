@@ -19,9 +19,9 @@ class Gateway(device.Device):
             "product": "Gateway",
             "version": "1.0",
             "serial": "",
-            "description": "Gateway device to control the gateway",
+            "description": "Device to control the gateway",
             "protocol": "ZigBee",
-            "communication": "Always Listning",
+            "communication": "Always Online",
             "included": "1",
             "value": []
         }

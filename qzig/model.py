@@ -32,7 +32,7 @@ class Model():
     @property
     def child_name(self):
         try:
-            return str(self._child_class.__name__).lower()
+            return str(self.create_child().name).lower()
         except:
             return ""
 
@@ -72,13 +72,14 @@ class Model():
         for (root, dirs, files) in os.walk(self.child_path):
             dirs = [os.path.join(root, d) for d in dirs]
 
+            child_name = self.child_name
             for dir in dirs:
-                if not os.path.exists(dir + "/" + self.child_name + ".json"):
+                if not os.path.exists(dir + "/" + child_name + ".json"):
                     continue
 
-                with open(dir + "/" + self.child_name + ".json", 'r') as f:
+                with open(dir + "/" + child_name + ".json", 'r') as f:
                     load = json.load(f)
-                    c = self._child_class(self, load=load)
+                    c = self.create_child(load=load)
                     self._children.append(c)
                     c.load_children()
 

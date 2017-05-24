@@ -14,7 +14,6 @@ class Device(model.Model):
     def __init__(self, parent, id=None, load=None):
         self._parent = parent
         self._children = []
-        self._child_class = value.Value
 
         if load is None:
             self._init(id)
@@ -44,6 +43,9 @@ class Device(model.Model):
             "init": True
         }
 
+    def create_child(self, **args):
+        return value.Value(self, **args)
+
     @property
     def ieee(self):
         return self.attr["ieee"]
@@ -68,7 +70,7 @@ class Device(model.Model):
     def add_value(self, endpoint_id, cluster_id):
         val = self.get_value(endpoint_id, cluster_id)
         if val is None:
-            val = self._child_class(self)
+            val = self.create_child()
             val.set_ids(endpoint_id, cluster_id)
             self._children.append(val)
         else:

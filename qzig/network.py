@@ -21,14 +21,16 @@ class Network(model.Model):
         }
         self.attr = {}
         self._children = []
-        self._child_class = device.Device
         self._rootdir = rootdir
+
+    def create_child(self, **args):
+        return device.Device(self, **args)
 
     @asyncio.coroutine
     def add_device(self, dev):
         d = self.get_device(str(dev.ieee))
         if d is None:
-            d = device.Device(self)
+            d = self.create_child()
             self._children.append(d)
         else:
             d._parent = self

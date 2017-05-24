@@ -62,7 +62,6 @@ class Value(model.Model):
     def __init__(self, parent, id=None, load=None):
         self._parent = parent
         self._children = []
-        self._child_class = state.State
         self.attr = {}
 
         if load is None:
@@ -86,6 +85,9 @@ class Value(model.Model):
             "status": ValueStatus.OK,
             "state": []
         }
+
+    def create_child(self, **args):
+        return state.State(self, **args)
 
     def set_ids(self, endpoint_id, cluster_id):
         self.attr["endpoint_id"] = endpoint_id
