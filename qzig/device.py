@@ -36,8 +36,7 @@ class Device(model.Model):
             "value": []
         }
         self.attr = {
-            "ieee": "",
-            "init": True
+            "ieee": ""
         }
 
     @property
@@ -69,14 +68,14 @@ class Device(model.Model):
     def parse_device(self, dev):
         self._dev = dev
         self.attr["ieee"] = str(dev.ieee)
-        if self.attr["init"]:
+        if self.data["version"] == "":
             yield from self.read_device_info()
 
         for e_id in self._dev.endpoints:
+            endpoint = self._dev.endpoints[e_id]
             if e_id == 0:
                 continue
 
-            endpoint = self._dev.endpoints[e_id]
             for c_id in endpoint.clusters:
                 cluster = endpoint.clusters[c_id]
                 val = self.add_value(e_id, c_id)
@@ -122,7 +121,6 @@ class Device(model.Model):
                 e = sys.exc_info()[0]
                 LOGGER.exception(e)
 
-            self.attr["init"] = False
             return
 
     def _handle_attributes_reply(self, attr):

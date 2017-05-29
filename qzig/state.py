@@ -60,6 +60,9 @@ class State(model.Model):
         tmp = self.get_raw_data()
         return tmp
 
+    def zdo_command(self, *args):
+        LOGGER.debug(args)
+
     def attribute_updated(self, attribute, data):
         LOGGER.debug("%d => %d" % (attribute, data))
         data = self._parent.handle_report(attribute, data)
@@ -73,9 +76,6 @@ class State(model.Model):
         self.save()
 
         self.send("", self.get_data())
-
-    def zdo_command(self, *args):
-        LOGGER.debug(args)
 
     @asyncio.coroutine
     def change_state(self, data):
