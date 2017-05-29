@@ -82,3 +82,23 @@ def test_zigbee_attribute_update_error_reply(app):
     loop.run_until_complete(asyncio.sleep(.1))
 
     app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"error":{"code": -32000, "message": "Test Error"}}')
+
+
+def test_zigbee_temperature_update(app):
+    devices = util._get_device(0x0402)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].clusters[0x0402]
+
+    assert cluster._cb is not None
+
+    cluster._cb.attribute_updated(0, 1234567890)
+
+    count = app._rpc._transport.write.call_count
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.sleep(.1))
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()

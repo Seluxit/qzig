@@ -112,7 +112,9 @@ def test_state_report_change(app):
     devices = util._get_device()
     util._startup(app, devices)
 
-    id = app._network._children[1]._children[0]._children[0].id
+    s = app._network._children[0]._children[0].get_state(state.StateType.REPORT)
+    assert s is not None
+    id = s.id
     rpc = util._rpc_state(id, 0)
 
     app._rpc.data_received(rpc.encode())

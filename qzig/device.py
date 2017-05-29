@@ -1,32 +1,29 @@
 import asyncio
 import logging
-import uuid
 import sys
 
 import qzig.model as model
 import qzig.value as value
+import qzig.values as values
 
 LOGGER = logging.getLogger(__name__)
 
 
 class Device(model.Model):
 
-    def __init__(self, parent, id=None, load=None):
+    def __init__(self, parent, load=None):
         self._parent = parent
         self._children = []
 
         if load is None:
-            self._init(id)
+            self._init()
         else:
             self._load(load)
 
-    def _init(self, id):
-        if id is None:
-            id = str(uuid.uuid4())
-
+    def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:device-1.1",
-            ":id": id,
+            ":id": self.uuid,
             "name": "",
             "manufacturer": "",
             "product": "",
@@ -43,8 +40,26 @@ class Device(model.Model):
             "init": True
         }
 
+    @property
+    def name(self):
+        return "device"
+
+    @property
+    def child_name(self):
+        return "value"
+
     def create_child(self, **args):
-        return value.Value(self, **args)
+        if "load" in args and "attr" in args["load"]:
+            cid = args["load"]["attr"]["cluster_id"]
+            c = values.get_value_class(cid)
+        elif "cluster_id" in args:
+            cid = args["cluster_id"]
+            c = values.get_value_class(cid)
+
+        if c is None:
+            return value.Value(self, **args)
+        else:
+            return c(self, **args)
 
     @property
     def ieee(self):
@@ -70,8 +85,7 @@ class Device(model.Model):
     def add_value(self, endpoint_id, cluster_id):
         val = self.get_value(endpoint_id, cluster_id)
         if val is None:
-            val = self.create_child()
-            val.set_ids(endpoint_id, cluster_id)
+            val = self.create_child(endpoint_id=endpoint_id, cluster_id=cluster_id)
             self._children.append(val)
         else:
             val._parent = self

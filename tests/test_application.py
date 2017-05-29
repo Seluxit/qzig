@@ -70,11 +70,7 @@ def test_load_json(app, tmpdir, store):
     data = tmpdir + "/../test_zigbee_device_and_endpoin0store/"
     os.system("cp -rf %s %s" % (data, store))
 
-    endpoint = MockEndpoint(1)
-    endpoint.clusters[6] = MockCluster(6)
-    device = MockDevice("11:22:33", 1)
-    device.endpoints[1] = endpoint
-    devices = {"device1": device}
+    devices = util._get_device()
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2

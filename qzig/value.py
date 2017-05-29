@@ -1,9 +1,6 @@
+import asyncio
 import logging
-import uuid
 import enum
-
-import bellows.zigbee.zcl.clusters.general as general_clusters
-import bellows.zigbee.zcl.clusters.measurement as measurement_clusters
 
 import qzig.model as model
 import qzig.state as state
@@ -59,39 +56,36 @@ class ValueStatus(enum.Enum):
 
 class Value(model.Model):
 
-    def __init__(self, parent, id=None, load=None):
+    def __init__(self, parent, endpoint_id=None, cluster_id=None, load=None):
         self._parent = parent
         self._children = []
-        self.attr = {}
+        self.attr = {
+            "endpoint_id": endpoint_id,
+            "cluster_id": cluster_id
+        }
 
         if load is None:
-            self._init(id)
+            self._init()
+            if self.data is None:
+                return
+            if self.data["permission"] == ValuePermission.READ_ONLY:
+                self.add_states([state.StateType.REPORT])
+            elif self.data["permission"] == ValuePermission.WRITE_ONLY:
+                self.add_states([state.StateType.CONTROL])
+            else:
+                self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
         else:
             self._load(load)
 
-    def _init(self, id):
-        if id is None:
-            id = str(uuid.uuid4())
+    def _init(self):
+        self.data = None
 
-        self.data = {
-            ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": id,
-            "name": "",
-            "permission": ValuePermission.READ_ONLY,
-            "type": "",
-            "period": "",
-            "delta": "",
-            "number": ValueNumberType(),
-            "status": ValueStatus.OK,
-            "state": []
-        }
+    @property
+    def name(self):
+        return "value"
 
     def create_child(self, **args):
         return state.State(self, **args)
-
-    def set_ids(self, endpoint_id, cluster_id):
-        self.attr["endpoint_id"] = endpoint_id
-        self.attr["cluster_id"] = cluster_id
 
     @property
     def endpoint_id(self):
@@ -120,65 +114,15 @@ class Value(model.Model):
         self._endpoint = endpoint
         self._cluster = cluster
 
-        self.init_data()
-
         if self.data is not None:
             rep = self.get_state(state.StateType.REPORT)
             if rep is not None:
                 cluster.add_listener(rep)
 
-    def init_data(self):
-        if self.attr["cluster_id"] == -1:
-            self.data["name"] = "Permit Join"
-            self.data["permission"] = ValuePermission.READ_WRITE
-            self.data["type"] = "Network Management"
-            self.data["number"].min = 0
-            self.data["number"].max = 250
-            self.data["number"].step = 1
-            self.data["number"].unit = "seconds"
-
-            self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
-        elif self.attr["cluster_id"] == general_clusters.OnOff.cluster_id:
-            self.data["name"] = "On/Off"
-            self.data["permission"] = ValuePermission.READ_WRITE
-            self.data["type"] = "On/Off"
-            self.data["number"].min = 0
-            self.data["number"].max = 1
-            self.data["number"].step = 1
-            self.data["number"].unit = "boolean"
-
-            self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
-        elif self.attr["cluster_id"] == general_clusters.Identify.cluster_id:
-            self.data["name"] = "Identify"
-            self.data["permission"] = ValuePermission.WRITE_ONLY
-            self.data["type"] = "Identify"
-            self.data["number"].min = 0
-            self.data["number"].max = 120
-            self.data["number"].step = 1
-            self.data["number"].unit = "seconds"
-
-            self.add_states([state.StateType.CONTROL])
-        elif self.attr["cluster_id"] == measurement_clusters.TemperatureMeasurement.cluster_id:
-            self.data["name"] = "Temperature"
-            self.data["permission"] = ValuePermission.READ_ONLY
-            self.data["type"] = "Temperature"
-            self.data["number"].min = -100
-            self.data["number"].max = 100
-            self.data["number"].step = 0.1
-            self.data["number"].unit = "celcius"
-
-            self.add_states([state.StateType.REPORT])
-        else:
-            self.data = None
-
     def add_states(self, types):
         for t in types:
-            s = self.get_state(t)
-            if s is None:
-                s = state.State(self, t)
-                self._children.append(s)
-            else:
-                s._parent = self
+            s = state.State(self, t)
+            self._children.append(s)
 
     def get_state(self, state_type):
         try:
@@ -203,3 +147,10 @@ class Value(model.Model):
         for s in self._children:
             tmp["state"].append(s.get_data())
         return tmp
+
+    def handle_report(self, attribute, data):  # pragma: no cover
+        pass
+
+    @asyncio.coroutine
+    def handle_control(self, data):  # pragma: no cover
+        pass

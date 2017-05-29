@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import uuid
 
 import qzig
 
@@ -24,6 +25,10 @@ class Model():
     def id(self):
         if self.data is not None:
             return self.data[":id"]
+
+    @property
+    def uuid(self):
+        return str(uuid.uuid4())
 
     @property
     def name(self):

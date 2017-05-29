@@ -52,7 +52,6 @@ class Network(model.Model):
             new_gw._children = gw._children
 
         self._children.append(new_gw)
-        new_gw.init_values()
 
     def load(self):
         try:
