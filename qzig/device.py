@@ -158,3 +158,11 @@ class Device(model.Model):
                 tmp["value"].append(d)
 
         return tmp
+
+    @asyncio.coroutine
+    def delete(self):
+        v = yield from self._dev.zdo.leave()
+        print(v)
+        self._remove_files()
+
+        return True

@@ -6,6 +6,7 @@ import qzig.zigbee as zigbee
 import qzig.json_rpc as json_rpc
 import qzig.network as network
 import qzig.gateway as gateway
+import qzig.device as device
 import qzig.state as state
 
 LOGGER = logging.getLogger(__name__)
@@ -118,4 +119,19 @@ class Application():
     @asyncio.coroutine
     def DELETE(self, url):
         LOGGER.debug(url)
-        return False
+        path = url.split("/")
+        id = path[-1]
+        service = path[-2]
+
+        if service == "device":
+            d = self._network.find_child(id)
+            if d is None:
+                return "Failed to find id %s" % id
+
+            if type(d) != device.Device:
+                return "ID is not a device"
+
+            res = yield from d.delete()
+            return res
+        else:
+            return "Invalid service (%s) in url" % service

@@ -2,6 +2,7 @@ import logging
 import json
 import os
 import uuid
+import shutil
 
 import qzig
 
@@ -104,3 +105,7 @@ class Model():
                 return res
 
         return None
+
+    def _remove_files(self):
+        print(self.path)
+        shutil.rmtree(self.path)

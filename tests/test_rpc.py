@@ -1,4 +1,3 @@
-import asyncio
 import tests.util as util
 import qzig.state as state
 
@@ -11,8 +10,7 @@ def test_wrong_service(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
@@ -26,8 +24,7 @@ def test_wrong_PUT(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
@@ -41,8 +38,7 @@ def test_wrong_POST(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
@@ -55,9 +51,7 @@ def test_wrong_GET(app):
     count = app._rpc._transport.write.call_count
 
     app._rpc.data_received(b'{"jsonrpc":"2.0","id":"468568996125","method":"GET","params":{"url":"/state/36330a7d-f8c0-4d15-b45f-b092a8f1dbca"}}')
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
@@ -71,10 +65,27 @@ def test_wrong_DELETE(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+    app._rpc.data_received(b'{"jsonrpc":"2.0","id":"468568996125","method":"DELETE","params":{"url":"/device/36330a7d-f8c0-4d15-b45f-b092a8f1dbca"}}')
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = '{"jsonrpc":"2.0","id":"468568996125","method":"DELETE","params":{"url":"/device/' + id + '"}}'
+    app._rpc.data_received(rpc.encode())
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 3)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
@@ -91,8 +102,7 @@ def test_state_on_off_change(app):
     rpc = util._rpc_state(id, "0")
     app._rpc.data_received(rpc.encode())
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "result" in app._rpc._transport.write.call_args[0][0].decode()
@@ -101,8 +111,7 @@ def test_state_on_off_change(app):
 
     app._rpc.data_received(rpc.encode())
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 2)
     assert "result" in app._rpc._transport.write.call_args[0][0].decode()
@@ -121,8 +130,7 @@ def test_state_report_change(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
@@ -142,8 +150,7 @@ def test_state_identify_change(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "result" in app._rpc._transport.write.call_args[0][0].decode()
@@ -160,8 +167,7 @@ def test_device_change_state(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
@@ -172,15 +178,37 @@ def test_gateway_permit(app):
 
     s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
     assert s is not None
+
     id = s.id
     rpc = util._rpc_state(id, 0)
-
     app._rpc.data_received(rpc.encode())
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(1.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 2)
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_delete_device(app, store):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    d = app._network._children[0]
+    assert d is not None
+
+    id = d.id
+    rpc = util._rpc_delete("device", id)
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+    assert d._dev.zdo._leave is True
+
+    assert len((store + "/device").listdir()) == 0

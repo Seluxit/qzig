@@ -32,6 +32,7 @@ class MockDevice():
         self.ieee = ieee
         self._nwk = nwk
         self.endpoints = {0: {}}
+        self.zdo = MockCluster(0)
 
 
 class MockEndpoint():
@@ -61,19 +62,28 @@ class MockCluster():
             return None
 
     @asyncio.coroutine
+    def leave(self):
+        self._leave = True
+
+    @asyncio.coroutine
     def on(self):
-        pass
+        self._on = True
 
     @asyncio.coroutine
     def off(self):
-        pass
+        self._off = True
 
     @asyncio.coroutine
     def identify(self, timeout):
-        pass
+        self._identify = True
 
     def add_listener(self, obj):
         self._cb = obj
+
+
+def run_loop():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.sleep(.01))
 
 
 @asyncio.coroutine
@@ -119,4 +129,9 @@ def _get_device(cluster=6):
 def _rpc_state(id, data):
     rpc = '{"jsonrpc":"2.0","id":"1","method":"PUT","params":{"url":"/state/' + id + '",'
     rpc += '"data":{"data":"' + str(data) + '","type":"Control","timestamp":"2017-05-19T10:16:28Z",":id":"' + id + '",":type":"urn:seluxit:xml:bastard:state-1.1"}}}'
+    return rpc
+
+
+def _rpc_delete(type, id):
+    rpc = '{"jsonrpc":"2.0","id":"1","method":"DELETE","params":{"url":"/' + type + '/' + id + '"}}'
     return rpc

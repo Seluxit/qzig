@@ -1,4 +1,3 @@
-import asyncio
 import tests.util as util
 
 
@@ -41,8 +40,7 @@ def test_zigbee_attribute_update(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
@@ -61,8 +59,7 @@ def test_zigbee_wrong_attribute_update(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == count
 
@@ -78,8 +75,7 @@ def test_zigbee_attribute_update_error_reply(app):
 
     cluster._cb.attribute_updated(0, 0)
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"error":{"code": -32000, "message": "Test Error"}}')
 
@@ -97,8 +93,7 @@ def test_zigbee_temperature_update(app):
 
     count = app._rpc._transport.write.call_count
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.1))
+    util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
