@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Network(model.Model):
 
-    def __init__(self, parent, id, rootdir=""):
+    def __init__(self, parent, id):
         self._parent = parent
         self.data = {
             ":type": "urn:seluxit:xml:bastard:network-1.1",
@@ -21,7 +21,7 @@ class Network(model.Model):
         }
         self.attr = {}
         self._children = []
-        self._rootdir = rootdir
+        self._rootdir = ""
 
     def create_child(self, **args):
         return device.Device(self, **args)

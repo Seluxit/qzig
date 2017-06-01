@@ -223,7 +223,7 @@ def test_gateway_permit(app):
 
 
 def test_delete_device(app, store):
-    app._gateway = None
+    app.gateway(None)
     devices = util._get_device()
     util._startup(app, devices)
 
@@ -246,7 +246,7 @@ def test_delete_device(app, store):
 
 
 def test_get_value(app):
-    app._gateway = None
+    app.gateway(None)
     devices = util._get_device()
     util._startup(app, devices)
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 import logging
+import ssl
+import os
+
 import qzig.application as application
 
 
@@ -29,7 +32,19 @@ def main():  # pragma: no cover
     device = "/dev/ttyACM1"
     network_id = "9e32e295-60be-4b9c-91d9-cd7942756496"
 
+    baseDir, baseFile = os.path.split(os.path.abspath(__file__))
+    certBase = baseDir
+    sslServerCert = certBase + "/certificates/ca.crt"
+    sslClientCert = certBase + "/certificates/client.crt"
+    sslKey = certBase + "/certificates/client.key"
+
+    ssl_ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_SSLv23)
+    ssl_ctx.load_cert_chain(certfile=sslClientCert, keyfile=sslKey)
+    ssl_ctx.load_verify_locations(cafile=sslServerCert)
+    ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+
     app = application.Application(device, network_id)
+    app.rpc_connection("q-wot.com", 21005, ssl_ctx)
     app.run()
 
 

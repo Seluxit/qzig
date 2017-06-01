@@ -14,6 +14,8 @@ class Model():
     def __init__(self, parent, load=None):
         self._parent = parent
         self._children = []
+        self.attr = {}
+        self.data = {}
 
         if load is None:
             self._init()

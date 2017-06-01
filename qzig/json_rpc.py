@@ -1,18 +1,10 @@
 import asyncio
 import logging
-import os
-import ssl
 import json
 
 import qzig.util
 
 LOGGER = logging.getLogger(__name__)
-
-baseDir, baseFile = os.path.split(os.path.abspath(__file__))
-certBase = baseDir
-sslServerCert = certBase + "/certificates/ca.crt"
-sslClientCert = certBase + "/certificates/client.crt"
-sslKey = certBase + "/certificates/client.key"
 
 
 class JsonRPC(asyncio.Protocol):
@@ -174,23 +166,12 @@ def connect(model):  # pragma: no cover
     connection_future = asyncio.Future()
     protocol = JsonRPC(model, connection_future)
 
-    ssl_ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_SSLv23)
-    ssl_ctx.load_cert_chain(certfile=sslClientCert, keyfile=sslKey)
-    ssl_ctx.load_verify_locations(cafile=sslServerCert)
-    ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-
-    host = "q-wot.com"
-    port = 21005
-
-    # host = "localhost"
-    # port = 42005
-
     yield from loop.create_connection(
         lambda: protocol,
-        ssl=ssl_ctx,
-        server_hostname=host,
-        host=host,
-        port=port
+        ssl=model.ssl,
+        server_hostname=model.host,
+        host=model.host,
+        port=model.port
     )
 
     yield from connection_future

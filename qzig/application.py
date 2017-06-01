@@ -12,11 +12,26 @@ LOGGER = logging.getLogger(__name__)
 
 class Application():
 
-    def __init__(self, device, network_id, gateway=gateway.Gateway, rootdir=""):
+    def __init__(self, device, network_id):
         self._dev = device
-        self._database = rootdir + "qzig.db"
-        self._network = network.Network(self, network_id, rootdir)
+        self._database = "qzig.db"
+        self._network = network.Network(self, network_id)
+        self._gateway = gateway.Gateway
+        self.host = "localhost"
+        self.port = 42005
+        self.ssl = None
+
+    def gateway(self, gateway):
         self._gateway = gateway
+
+    def rootdir(self, rootdir):
+        self._database = rootdir + "qzig.db"
+        self._network._rootdir = rootdir
+
+    def rpc_connection(self, host, port, ssl):
+        self.host = host
+        self.port = port
+        self.ssl = ssl
 
     def run(self):  # pragma: no cover
         """Main event loop"""
