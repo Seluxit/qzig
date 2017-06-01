@@ -54,24 +54,33 @@ class MockCluster():
     @asyncio.coroutine
     def read_attributes(self, *args, **kwargs):
         self.reply_count += 1
-        if self.reply_count == 1:
-            return [{1: 0, 4: b'test', 5: b'test', 10: b'0'}, 0]
-        elif self.reply_count == 2:
-            return [0, 1]
+        if self.cluster_id == 6:
+            return [{0: 0}, 0]
         else:
-            return None
+            if self.reply_count == 1:
+                return [{1: 0, 4: b'test', 5: b'test', 10: b'0'}, 0]
+            elif self.reply_count == 2:
+                return [0, 1]
+            else:
+                return None
 
     @asyncio.coroutine
     def leave(self):
         self._leave = True
 
     @asyncio.coroutine
+    def bind(self, endpoint_id, cluster_id):
+        self._bind = True
+
+    @asyncio.coroutine
     def on(self):
         self._on = True
+        return [1, 0]
 
     @asyncio.coroutine
     def off(self):
         self._off = True
+        return [0, 0]
 
     @asyncio.coroutine
     def identify(self, timeout):
@@ -134,4 +143,9 @@ def _rpc_state(id, data):
 
 def _rpc_delete(type, id):
     rpc = '{"jsonrpc":"2.0","id":"1","method":"DELETE","params":{"url":"/' + type + '/' + id + '"}}'
+    return rpc
+
+
+def _rpc_get(type, id):
+    rpc = '{"jsonrpc":"2.0","id":"1","method":"GET","params":{"url":"/' + type + '/' + id + '"}}'
     return rpc

@@ -78,6 +78,11 @@ class State(model.Model):
         self.send("", self.get_data())
 
     @asyncio.coroutine
+    def handle_get(self):
+        res = yield from self._parent.handle_get()
+        return res
+
+    @asyncio.coroutine
     def change_state(self, data):
         if self.type == StateType.REPORT:
             return "Report state can't be changed"

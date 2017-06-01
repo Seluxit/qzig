@@ -26,6 +26,6 @@ class Identify(value.Value):
     @asyncio.coroutine
     def handle_control(self, data):
         v = yield from self._cluster.identify(int(data))
-        print(v)
+        LOGGER.debug(v)
         self.save()
         return True

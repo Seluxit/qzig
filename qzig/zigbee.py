@@ -22,15 +22,15 @@ class ZigBee():
         LOGGER.debug("Connected")
 
         LOGGER.debug("Configuring...")
-        self.app = zigbee.ControllerApplication(s, self.db)
-        self.app.add_listener(self)
-        yield from self.app.startup(True)
+        self.controller = zigbee.ControllerApplication(s, self.db)
+        self.controller.add_listener(self.app)
+        yield from self.controller.startup(True)
         LOGGER.debug("Configured")
 
-        LOGGER.info("NodeID: %s" % str(self.app.nwk))
-        LOGGER.info("IEEE: %s" % str(self.app.ieee))
+        LOGGER.info("NodeID: %s" % str(self.controller.nwk))
+        LOGGER.info("IEEE: %s" % str(self.controller.ieee))
 
-        for ieee, dev in self.app.devices.items():
+        for ieee, dev in self.controller.devices.items():
             LOGGER.info("Device:")
             LOGGER.info("  NWK: 0x%04x" % (dev._nwk, ))
             LOGGER.info("  IEEE: %s" % (ieee, ))
@@ -57,20 +57,7 @@ class ZigBee():
                             ))
 
     def close(self):
-        self.app._ezsp.close()
+        self.controller._ezsp.close()
 
     def devices(self):
-        return self.app.devices.items()
-
-    # Callbacks
-    def device_left(self, device):
-        LOGGER.debug(__name__, device)
-
-    def device_joined(self, device):
-        LOGGER.debug(__name__, device)
-
-    def device_initialized(self, device):
-        LOGGER.debug(__name__, device)
-
-    def attribute_updated(self, cluster, attrid, value):
-        LOGGER.debug(__name__, cluster, attrid, value)
+        return self.controller.devices.items()

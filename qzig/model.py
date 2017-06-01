@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import json
 import os
@@ -10,6 +11,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Model():
+    def __init__(self, parent, load=None):
+        self._parent = parent
+        self._children = []
+
+        if load is None:
+            self._init()
+        else:
+            self._load(load)
+
     @property
     def path(self):
         try:
@@ -90,9 +100,8 @@ class Model():
                     c.load_children()
 
     def send(self, url, data):
-        if hasattr(self, "_parent"):
-            url = "/" + self.name + "/" + self.id + url
-            self._parent.send(url, data)
+        url = "/" + self.name + "/" + self.id + url
+        self._parent.send(url, data)
 
     def find_child(self, id):
         for c in self._children:
@@ -107,5 +116,13 @@ class Model():
         return None
 
     def _remove_files(self):
-        print(self.path)
         shutil.rmtree(self.path)
+
+    @asyncio.coroutine
+    def bind(self, endpoint_id, cluster_id):
+        yield from self._parent.bind(endpoint_id, cluster_id)
+
+    @asyncio.coroutine
+    def permit(self, timeout):
+        v = yield from self._parent.permit(timeout)
+        return v

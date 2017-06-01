@@ -6,8 +6,6 @@ import qzig.zigbee as zigbee
 import qzig.json_rpc as json_rpc
 import qzig.network as network
 import qzig.gateway as gateway
-import qzig.device as device
-import qzig.state as state
 
 LOGGER = logging.getLogger(__name__)
 
@@ -76,6 +74,11 @@ class Application():
         self._network.save()
 
     @asyncio.coroutine
+    def permit(self, timeout):
+        v = yield from self._zb.controller.permit(timeout)
+        return v
+
+    @asyncio.coroutine
     def _clean_server_devices(self):
         devices = yield from self._rpc.get("/network/" + self._network.id + "/device")
         for id in devices["id"]:
@@ -83,21 +86,39 @@ class Application():
             if dev is None:
                 self._rpc.delete("/network/" + self._network.id + "/device/" + id)
 
+    def _split_url(self, url):
+        path = url.split("/")
+        id = path[-1]
+        service = path[-2]
+        return service, id
+
+    # Callbacks
+    def device_left(self, device):
+        LOGGER.debug(__name__, device)
+
+    def device_joined(self, device):
+        LOGGER.debug(__name__, device)
+
+    def device_initialized(self, device):
+        LOGGER.debug(__name__, device)
+
+    def attribute_updated(self, cluster, attrid, value):
+        LOGGER.debug(__name__, cluster, attrid, value)
+
+    # RPC calls
     @asyncio.coroutine
     def PUT(self, url, data):
         LOGGER.debug(url)
         LOGGER.debug(data)
 
-        path = url.split("/")
-        id = path[-1]
-        service = path[-2]
+        service, id = self._split_url(url)
 
         if service == "state":
             s = self._network.find_child(id)
             if s is None:
                 return "Failed to find id %s" % id
 
-            if type(s) != state.State:
+            if s.name != "state":
                 return "ID is not a state"
 
             res = yield from s.change_state(data)
@@ -109,26 +130,43 @@ class Application():
     def POST(self, url, data):
         LOGGER.debug(url)
         LOGGER.debug(data)
+
+        service, id = self._split_url(url)
+
         return False
 
     @asyncio.coroutine
-    def GET(self, url):
+    def GET(self, url, data=None):
         LOGGER.debug(url)
-        return False
+
+        service, id = self._split_url(url)
+
+        if service == "state":
+            s = self._network.find_child(id)
+            if s is None:
+                return "Failed to find id %s" % id
+
+            if s.name != "state":
+                LOGGER.debug(s)
+                return "ID is not a state"
+
+            res = yield from s.handle_get()
+            return res
+        else:
+            return "Invalid service (%s) in url" % service
 
     @asyncio.coroutine
-    def DELETE(self, url):
+    def DELETE(self, url, data=None):
         LOGGER.debug(url)
-        path = url.split("/")
-        id = path[-1]
-        service = path[-2]
+
+        service, id = self._split_url(url)
 
         if service == "device":
             d = self._network.find_child(id)
             if d is None:
                 return "Failed to find id %s" % id
 
-            if type(d) != device.Device:
+            if d.name != "device":
                 return "ID is not a device"
 
             res = yield from d.delete()

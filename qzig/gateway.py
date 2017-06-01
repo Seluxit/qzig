@@ -3,7 +3,6 @@ import logging
 
 import qzig.device as device
 import qzig.value as value
-import qzig.state as state
 
 LOGGER = logging.getLogger(__name__)
 
@@ -57,20 +56,12 @@ class NetworkPermit(value.Value):
         return data
 
     @asyncio.coroutine
-    def _delayed_report(self, time, value):
-        s = self.get_state(state.StateType.REPORT)
-        if s is not None:
-            yield from asyncio.sleep(time)
-            s.attribute_updated(0, value)
-
-    @asyncio.coroutine
     def handle_control(self, data):
         t = int(data)
-        v = yield from self._parent._parent._parent._zb.app.permit(t)
-        print(v)
+        v = yield from self.permit(t)
+        LOGGER.debug(v)
 
-        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
-        async_fun(self._delayed_report(0, t))
-        async_fun(self._delayed_report(t, 0))
+        self.delayed_report(0, t)
+        self.delayed_report(t, 0)
 
         return True

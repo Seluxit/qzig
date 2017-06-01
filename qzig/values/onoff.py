@@ -23,6 +23,18 @@ class OnOff(value.Value):
         self.data["number"].step = 1
         self.data["number"].unit = "boolean"
 
+    @asyncio.coroutine
+    def handle_get(self):
+        try:
+            v = yield from self._cluster.read_attributes([0])
+            if 0 not in v[0]:
+                return "Failed to read value from device"  # pragma: no cover
+            else:
+                self.delayed_report(0, v[0][0])
+                return True
+        except:  # pragma: no cover
+            return "Failed to read value from device"
+
     def handle_report(self, attribute, data):
         if attribute == 0:
             return data
@@ -34,6 +46,10 @@ class OnOff(value.Value):
         else:
             v = yield from self._cluster.off()
 
-        print(v)
+        LOGGER.debug(v)
+
+        if v[1] == 0:
+            self.delayed_report(0, v[0])
+
         self.save()
         return True

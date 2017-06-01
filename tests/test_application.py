@@ -7,7 +7,7 @@ def test_init(app, tmpdir, store):
     app._gateway = None
     util._startup(app)
 
-    assert app._zb.app._cb is not None
+    assert app._zb.controller._cb is not None
     assert len(tmpdir.listdir()) == 0
     assert len(store.listdir()) == 1
     assert str(store.listdir()[0]).endswith("network.json")

@@ -65,6 +65,7 @@ class Value(model.Model):
         }
 
         if load is None:
+            self._bind = True
             self._init()
             if self.data is None:
                 return
@@ -75,6 +76,7 @@ class Value(model.Model):
             else:
                 self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
         else:
+            self._bind = False
             self._load(load)
 
     def _init(self):
@@ -110,6 +112,7 @@ class Value(model.Model):
         # elif "xml" in self.data:
         #    self.data["xml"] = ValueSetType(self.data["xml"])
 
+    @asyncio.coroutine
     def parse_cluster(self, endpoint, cluster):
         self._endpoint = endpoint
         self._cluster = cluster
@@ -118,6 +121,8 @@ class Value(model.Model):
             rep = self.get_state(state.StateType.REPORT)
             if rep is not None:
                 cluster.add_listener(rep)
+                if self._bind:
+                    yield from self.bind(self.endpoint_id, self.cluster_id)
 
     def add_states(self, types):
         for t in types:
@@ -151,6 +156,21 @@ class Value(model.Model):
     def handle_report(self, attribute, data):  # pragma: no cover
         pass
 
+    def delayed_report(self, time, value):
+        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
+        async_fun(self._delayed_report(time, value))
+
+    @asyncio.coroutine
+    def _delayed_report(self, time, value):
+        s = self.get_state(state.StateType.REPORT)
+        if s is not None:
+            yield from asyncio.sleep(time)
+            s.attribute_updated(0, value)
+
     @asyncio.coroutine
     def handle_control(self, data):  # pragma: no cover
         pass
+
+    @asyncio.coroutine
+    def handle_get(self):  # pragma: no cover
+        return False

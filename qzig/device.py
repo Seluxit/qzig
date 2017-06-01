@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import sys
 
 import qzig.model as model
 import qzig.value as value
@@ -10,16 +9,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Device(model.Model):
-
-    def __init__(self, parent, load=None):
-        self._parent = parent
-        self._children = []
-
-        if load is None:
-            self._init()
-        else:
-            self._load(load)
-
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:device-1.1",
@@ -27,7 +16,7 @@ class Device(model.Model):
             "name": "",
             "manufacturer": "",
             "product": "",
-            "version": "",
+            "version": "N/A",
             "serial": "",
             "description": "",
             "protocol": "ZigBee",
@@ -68,7 +57,7 @@ class Device(model.Model):
     def parse_device(self, dev):
         self._dev = dev
         self.attr["ieee"] = str(dev.ieee)
-        if self.data["version"] == "":
+        if self.data["version"] == "N/A":
             yield from self.read_device_info()
 
         for e_id in self._dev.endpoints:
@@ -79,7 +68,9 @@ class Device(model.Model):
             for c_id in endpoint.clusters:
                 cluster = endpoint.clusters[c_id]
                 val = self.add_value(e_id, c_id)
-                val.parse_cluster(endpoint, cluster)
+                yield from val.parse_cluster(endpoint, cluster)
+
+        self.save()
 
     def add_value(self, endpoint_id, cluster_id):
         val = self.get_value(endpoint_id, cluster_id)
@@ -111,17 +102,19 @@ class Device(model.Model):
                 continue
             cluster = endp.clusters[0]
 
-            LOGGER.debug("Reading attributes")
+            LOGGER.debug("Reading attributes from device %s", str(self._dev.ieee))
             try:
                 v = yield from cluster.read_attributes([0, 1, 2, 3, 4, 5])
-                self._handle_attributes_reply(v)
-                v = yield from cluster.read_attributes([10])
-                self._handle_attributes_reply(v)
             except:  # pragma: no cover
-                e = sys.exc_info()[0]
-                LOGGER.exception(e)
-
-            return
+                LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
+                return
+            self._handle_attributes_reply(v)
+            try:
+                v = yield from cluster.read_attributes([10])
+            except:  # pragma: no cover
+                LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
+                return
+            self._handle_attributes_reply(v)
 
     def _handle_attributes_reply(self, attr):
         if attr[1]:
@@ -162,7 +155,14 @@ class Device(model.Model):
     @asyncio.coroutine
     def delete(self):
         v = yield from self._dev.zdo.leave()
-        print(v)
+        LOGGER.debug(v)
         self._remove_files()
 
         return True
+
+    @asyncio.coroutine
+    def bind(self, endpoint_id, cluster_id):
+        try:
+            yield from self._dev.zdo.bind(endpoint_id, cluster_id)
+        except Exception:  # pragma: no cover
+            LOGGER.error("Failed to bind to device")

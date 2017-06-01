@@ -50,10 +50,27 @@ def test_wrong_GET(app):
 
     count = app._rpc._transport.write.call_count
 
-    app._rpc.data_received(b'{"jsonrpc":"2.0","id":"468568996125","method":"GET","params":{"url":"/state/36330a7d-f8c0-4d15-b45f-b092a8f1dbca"}}')
+    app._rpc.data_received(b'{"jsonrpc":"2.0","id":"468568996125","method":"GET","params":{"url":"/device/36330a7d-f8c0-4d15-b45f-b092a8f1dbca"}}')
     util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+    app._rpc.data_received(b'{"jsonrpc":"2.0","id":"468568996125","method":"GET","params":{"url":"/state/36330a7d-f8c0-4d15-b45f-b092a8f1dbca"}}')
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+    d = app._network._children[0]
+    assert d is not None
+    id = d.id
+    rpc = '{"jsonrpc":"2.0","id":"468568996125","method":"GET","params":{"url":"/state/' + id + '"}}'
+    app._rpc.data_received(rpc.encode())
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 3)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
@@ -89,7 +106,7 @@ def test_wrong_DELETE(app):
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
-def test_state_on_off_change(app):
+def test_state_off_change(app):
     app._gateway = None
     devices = util._get_device()
     util._startup(app, devices)
@@ -104,17 +121,31 @@ def test_state_on_off_change(app):
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 1)
-    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+    assert app._rpc._transport.write.call_count == (count + 2)
 
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_on_change(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    count = app._rpc._transport.write.call_count
+
+    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
     rpc = util._rpc_state(id, "1")
-
     app._rpc.data_received(rpc.encode())
 
     util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 2)
-    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"data": "1"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_state_report_change(app):
@@ -212,3 +243,23 @@ def test_delete_device(app, store):
     assert d._dev.zdo._leave is True
 
     assert len((store + "/device").listdir()) == 0
+
+
+def test_get_value(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[0].get_state(state.StateType.REPORT)
+    assert s is not None
+
+    id = s.id
+    rpc = util._rpc_get("state", id)
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()

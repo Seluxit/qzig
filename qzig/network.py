@@ -36,7 +36,7 @@ class Network(model.Model):
             d._parent = self
 
         yield from d.parse_device(dev)
-        d.save()
+        return d
 
     def add_gateway(self, gw_class):
         gw = self.get_device("gateway")
@@ -52,6 +52,7 @@ class Network(model.Model):
             new_gw._children = gw._children
 
         self._children.append(new_gw)
+        return new_gw
 
     def load(self):
         try:

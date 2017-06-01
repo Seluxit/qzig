@@ -7,12 +7,12 @@ def test_zigbee_callbacks(app):
 
     dev = next(iter(devices.values()))
 
-    assert app._zb.app._cb is not None
+    assert app._zb.controller._cb is not None
 
-    app._zb.app._cb.device_left(dev)
-    app._zb.app._cb.device_joined(dev)
-    app._zb.app._cb.device_initialized(dev)
-    app._zb.app._cb.attribute_updated(0, 0, 0)
+    app._zb.controller._cb.device_left(dev)
+    app._zb.controller._cb.device_joined(dev)
+    app._zb.controller._cb.device_initialized(dev)
+    app._zb.controller._cb.attribute_updated(0, 0, 0)
 
 
 def test_zigbee_zdo_command(app):
