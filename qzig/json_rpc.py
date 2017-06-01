@@ -82,9 +82,11 @@ class JsonRPC(asyncio.Protocol):
 
         if "error" in rpc:
             LOGGER.error(rpc["error"])
-            pending[1].set_result(rpc["error"])
+            res = rpc["error"]
         else:
-            pending[1].set_result(rpc["result"])
+            res = rpc["result"]
+
+        pending[1].set_result(res)
 
     def _handle_request(self, rpc):
         self._reqq.put_nowait(rpc)
@@ -136,8 +138,7 @@ class JsonRPC(asyncio.Protocol):
         self._send(rpc, -1)
 
     def _rpc(self, method, url, data=None):
-        id = self._id
-        self._id = self._id + 1
+        id, self._id = self._id, self._id + 1
         rpc = {
             "jsonrpc": "2.0",
             "method": method,
@@ -151,16 +152,16 @@ class JsonRPC(asyncio.Protocol):
 
         return self._send(rpc, id)
 
-    def post(self, url, data):
-        return self._rpc("POST", url, data)
-
-    def put(self, url, data):
-        return self._rpc("PUT", url, data)
-
     @asyncio.coroutine
     def get(self, url):
         data = yield from self._rpc("GET", url)
         return data
+
+    def post(self, url, data):
+        self._rpc("POST", url, data)
+
+    def put(self, url, data):
+        self._rpc("PUT", url, data)
 
     def delete(self, url):
         self._rpc("DELETE", url)
