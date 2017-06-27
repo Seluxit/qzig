@@ -1,7 +1,52 @@
 import tests.util as util
 
 
-def test_zigbee_callbacks(app):
+def test_zigbee_attribute_update_callback(app):
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    assert app._zb.controller._cb is not None
+
+    app._zb.controller._cb.attribute_updated(0, 0, 0)
+
+
+def test_zigbee_device_joined(app):
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+
+    assert app._zb.controller._cb is not None
+
+    app._zb.controller._cb.device_joined(dev)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert '"PUT"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_zigbee_device_initialized(app):
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+
+    assert app._zb.controller._cb is not None
+
+    app._zb.controller._cb.device_initialized(dev)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert '"POST"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_zigbee_device_left(app):
     devices = util._get_device()
     util._startup(app, devices)
 
@@ -10,9 +55,24 @@ def test_zigbee_callbacks(app):
     assert app._zb.controller._cb is not None
 
     app._zb.controller._cb.device_left(dev)
-    app._zb.controller._cb.device_joined(dev)
-    app._zb.controller._cb.device_initialized(dev)
-    app._zb.controller._cb.attribute_updated(0, 0, 0)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert '"DELETE"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_zigbee_device_annoucement(app):
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+
+    assert dev.zdo._cb is not None
+
+    dev.zdo._cb.device_announce(dev)
 
 
 def test_zigbee_zdo_command(app):

@@ -64,7 +64,6 @@ class State(model.Model):
         LOGGER.debug(args)
 
     def attribute_updated(self, attribute, data):
-        LOGGER.debug("%d => %d" % (attribute, data))
         data = self._parent.handle_report(attribute, data)
 
         if data is None:
@@ -75,7 +74,7 @@ class State(model.Model):
 
         self.save()
 
-        self.send("", self.get_data())
+        self.send_put("", self.get_data())
 
     @asyncio.coroutine
     def handle_get(self):
@@ -88,5 +87,4 @@ class State(model.Model):
             return "Report state can't be changed"
 
         res = yield from self._parent.handle_control(data["data"])
-
         return res

@@ -49,10 +49,14 @@ class Model():
 
     @property
     def child_name(self):
-        try:
-            return str(self.create_child().name).lower()
-        except:
-            return ""
+        if not hasattr(self, "_child_name"):
+            self._child_name = ""
+            try:
+                self._child_name = str(self.create_child().name).lower()
+            except:
+                pass
+
+        return self._child_name
 
     def __str__(self):  # pragma: no cover
         return "<%s attr: %s>" % (self.name, self.attr)
@@ -101,9 +105,20 @@ class Model():
                     self._children.append(c)
                     c.load_children()
 
-    def send(self, url, data):
+    def send_put(self, url, data):
         url = "/" + self.name + "/" + self.id + url
-        self._parent.send(url, data)
+        self._parent.send_put(url, data)
+
+    def send_post(self, url, data):
+        if url == "":
+            url = "/" + self.name
+        else:
+            url = "/" + self.name + "/" + self.id + url
+        self._parent.send_post(url, data)
+
+    def send_delete(self, url=""):
+        url = "/" + self.name + "/" + self.id + url
+        self._parent.send_delete(url)
 
     def find_child(self, id):
         for c in self._children:

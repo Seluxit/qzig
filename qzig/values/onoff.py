@@ -37,7 +37,7 @@ class OnOff(value.Value):
 
     def handle_report(self, attribute, data):
         if attribute == 0:
-            return data
+            return int(data)
 
     @asyncio.coroutine
     def handle_control(self, data):

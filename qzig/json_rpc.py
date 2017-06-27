@@ -92,7 +92,12 @@ class JsonRPC(asyncio.Protocol):
             LOGGER.debug(item)
             method = item["method"]
             params = item["params"]
-            result = yield from getattr(self._app, method)(**params)
+
+            try:
+                result = yield from getattr(self._app, method)(**params)
+            except Exception as e:
+                result = str(e)
+
             if result is True:
                 self._send_result(item["id"], result)
             else:

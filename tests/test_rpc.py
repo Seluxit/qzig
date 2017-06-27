@@ -1,3 +1,4 @@
+import asyncio
 import tests.util as util
 import qzig.state as state
 
@@ -104,6 +105,31 @@ def test_wrong_DELETE(app):
 
     assert app._rpc._transport.write.call_count == (count + 3)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_no_reply(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    count = app._rpc._transport.write.call_count
+
+    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, "0")
+    app._rpc.data_received(rpc.encode())
+
+    @asyncio.coroutine
+    def error_off():
+        raise Exception("Failed to send")
+
+    s._parent._cluster.off = error_off
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "Failed to send" in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_state_off_change(app):

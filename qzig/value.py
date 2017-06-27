@@ -158,7 +158,7 @@ class Value(model.Model):
 
     def delayed_report(self, time, value):
         async_fun = getattr(asyncio, "ensure_future", asyncio.async)
-        async_fun(self._delayed_report(time, value))
+        return async_fun(self._delayed_report(time, value))
 
     @asyncio.coroutine
     def _delayed_report(self, time, value):
@@ -169,6 +169,7 @@ class Value(model.Model):
 
     @asyncio.coroutine
     def handle_control(self, data):  # pragma: no cover
+        LOGGER.error("Called unhandled handle_control")
         pass
 
     @asyncio.coroutine

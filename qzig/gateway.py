@@ -27,12 +27,11 @@ class Gateway(device.Device):
             "ieee": "gateway",
             "init": True
         }
-
         self.add_value(-1, -1)
         self.save()
 
     def create_child(self, **args):
-        return NetworkPermit(self)
+        return NetworkPermit(self, **args)
 
 
 class NetworkPermit(value.Value):
@@ -62,6 +61,6 @@ class NetworkPermit(value.Value):
         LOGGER.debug(v)
 
         self.delayed_report(0, t)
-        self.delayed_report(t, 0)
+        self._report_fut = self.delayed_report(t, 0)
 
         return True

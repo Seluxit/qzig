@@ -24,10 +24,17 @@ class Network(model.Model):
         self._rootdir = ""
 
     def create_child(self, **args):
+        if self._parent._gateway is not None:
+            try:
+                if args["load"]["attr"]["ieee"] == "gateway":
+                    return self._parent._gateway(self, **args)
+            except:
+                pass
+
         return device.Device(self, **args)
 
     @asyncio.coroutine
-    def add_device(self, dev):
+    def add_device(self, dev, post=False):
         d = self.get_device(str(dev.ieee))
         if d is None:
             d = self.create_child()
@@ -36,23 +43,33 @@ class Network(model.Model):
             d._parent = self
 
         yield from d.parse_device(dev)
+
+        if post:
+            d.send_post("", d.get_data())
         return d
 
-    def add_gateway(self, gw_class):
+    def add_gateway(self):
+        if self._parent._gateway is None:
+            return
+
         gw = self.get_device("gateway")
-        if gw is None:
-            new_gw = gw_class(self)
-        else:
-            data = {
-                "data": gw.data,
-                "attr": gw.attr
-            }
-            self._children.remove(gw)
-            new_gw = gw_class(self, load=data)
-            new_gw._children = gw._children
+        if gw is not None:
+            return gw
+
+        new_gw = self._parent._gateway(self)
 
         self._children.append(new_gw)
         return new_gw
+
+    @asyncio.coroutine
+    def remove_device(self, dev):
+        d = self.get_device(str(dev.ieee))
+        if d is None:  # pragma: no cover
+            LOGGER.error("Failed to find device to remove")
+            return
+
+        d._remove_files()
+        d.send_delete()
 
     def load(self):
         try:
@@ -65,6 +82,8 @@ class Network(model.Model):
             LOGGER.exception("Failed to load network data")
 
         self.load_children()
+
+        self.add_gateway()
 
     def get_device(self, ieee, id=None):
         try:

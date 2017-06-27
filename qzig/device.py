@@ -70,6 +70,8 @@ class Device(model.Model):
                 val = self.add_value(e_id, c_id)
                 yield from val.parse_cluster(endpoint, cluster)
 
+        dev.zdo.add_listener(self)
+
         self.save()
 
     def add_value(self, endpoint_id, cluster_id):
@@ -151,6 +153,9 @@ class Device(model.Model):
                 tmp["value"].append(d)
 
         return tmp
+
+    def device_announce(self, dev):
+        LOGGER.debug("Device came online")
 
     @asyncio.coroutine
     def delete(self):

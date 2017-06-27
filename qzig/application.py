@@ -16,10 +16,10 @@ class Application():
         self._dev = device
         self._database = "qzig.db"
         self._network = network.Network(self, network_id)
-        self._gateway = gateway.Gateway
         self.host = "localhost"
         self.port = 42005
         self.ssl = None
+        self._gateway = gateway.Gateway
 
     def gateway(self, gateway):
         self._gateway = gateway
@@ -66,8 +66,10 @@ class Application():
 
     def close(self):
         try:
-            self._zb.close()
-            self._rpc.close()
+            if hasattr(self, "_zb"):
+                self._zb.close()
+            if hasattr(self, "_rpc"):
+                self._rpc.close()
         except:  # pragma: no cover
             e = sys.exc_info()[0]
             LOGGER.exception(e)
@@ -78,11 +80,14 @@ class Application():
         for ieee, dev in self._zb.devices():
             yield from self._network.add_device(dev)
 
-        if self._gateway is not None:
-            self._network.add_gateway(self._gateway)
-
-    def send(self, url, data):
+    def send_put(self, url, data):
         self._rpc.put(url, data)
+
+    def send_post(self, url, data):
+        self._rpc.post(url, data)
+
+    def send_delete(self, url):
+        self._rpc.delete(url)
 
     def _send_full_network(self):
         self._rpc.post("/network", self._network.get_data())
@@ -109,16 +114,25 @@ class Application():
 
     # Callbacks
     def device_left(self, device):
-        LOGGER.debug(__name__, device)
+        LOGGER.debug("Device left %s", str(device.ieee))
+        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
+        async_fun(self._network.remove_device(device))
 
     def device_joined(self, device):
-        LOGGER.debug(__name__, device)
+        LOGGER.debug("Device joined %s", str(device.ieee))
+        gw = self._network.get_device("gateway")
+        val = gw.get_value(-1, -1)
+        if hasattr(val, "_report_fut"):
+            val._report_fut.cancel()  # pragma: no cover
+        val.delayed_report(0, 0)
 
     def device_initialized(self, device):
-        LOGGER.debug(__name__, device)
+        LOGGER.debug("Device initlized %s", str(device.ieee))
+        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
+        async_fun(self._network.add_device(device, True))
 
     def attribute_updated(self, cluster, attrid, value):
-        LOGGER.debug(__name__, cluster, attrid, value)
+        LOGGER.debug("Attributes updated %d %d %d", cluster, attrid, value)
 
     # RPC calls
     @asyncio.coroutine
