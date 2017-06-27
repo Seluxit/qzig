@@ -5,4 +5,7 @@
 [![Build Status](https://travis-ci.org/Seluxit/qzig.svg?branch=master)](https://travis-ci.org/Seluxit/qzig)
 [![Coverage Status](https://coveralls.io/repos/github/Seluxit/qzig/badge.svg?branch=master)](https://coveralls.io/github/Seluxit/qzig?branch=master)
 
-ZigBee converter for Seluxit Q platform
+ZigBee converter for Seluxit Q platform.
+
+Usage
+-----

@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="qzig",
-    version="0.0.1",
+    version="0.0.2",
     author="Seluxit ApS",
     author_email="info@seluxit.com",
     maintainer="Andreas Bomholtz",
@@ -22,7 +22,7 @@ setup(
         'bellows',
     ],
     requires=[
-        'bellow',
+        'bellows',
     ],
     tests_require=[
         'pytest',
