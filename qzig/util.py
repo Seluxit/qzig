@@ -16,9 +16,9 @@ class QZigEncoder(json.JSONEncoder):
             return obj.value
         if type(obj) is value.ValueNumberType:
             return obj.__dict__
+        if type(obj) is value.ValueStringType:
+            return obj.__dict__
         # if type(obj) is value.ValueSetType:
-        #    return obj.__dict__
-        # if type(obj) is value.ValueStringType:
         #    return obj.__dict__
         # if type(obj) is value.ValueBlobType:
         #    return obj.__dict__

@@ -28,10 +28,20 @@ class Gateway(device.Device):
             "init": True
         }
         self.add_value(-1, -1)
+        self.add_value(-2, -2)
         self.save()
 
     def create_child(self, **args):
-        return NetworkPermit(self, **args)
+        id = -1
+        if "load" in args:
+            id = args["load"]["attr"]["cluster_id"]
+        else:
+            id = args["cluster_id"]
+        print(args, id)
+        if id == -2:
+            return NetworkJoinKey(self, **args)
+        else:
+            return NetworkPermit(self, **args)
 
 
 class NetworkPermit(value.Value):
@@ -63,4 +73,41 @@ class NetworkPermit(value.Value):
         self.delayed_report(0, t)
         self._report_fut = self.delayed_report(t, 0)
 
+        return True
+
+
+class NetworkJoinKey(value.Value):
+    def _init(self):
+        self.data = {
+            ":type": "urn:seluxit:xml:bastard:value-1.1",
+            ":id": self.uuid,
+            "name": "Join Key",
+            "permission": value.ValuePermission.READ_WRITE,
+            "type": "Network Management",
+            "string": value.ValueStringType(),
+            "status": value.ValueStatus.OK,
+            "state": []
+        }
+        self.data["string"].encoding = "hexbinary"
+        self.data["string"].max = 26
+
+    def handle_report(self, attribute, data):
+        return data
+
+    @asyncio.coroutine
+    def handle_control(self, data):
+        try:
+            data = bytearray.fromhex(data)
+        except Exception as e:
+            LOGGER.error(e)
+            return e
+
+        if len(data) < 18:
+            return "install code has to be minimal 18 charaters"
+
+        node = data[0:8]
+        code = data[8:]
+
+        v = yield from self.permit_with_key(node, code, 180)
+        LOGGER.debug(v)
         return True

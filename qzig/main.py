@@ -29,7 +29,7 @@ def setup_logging():
 def main():  # pragma: no cover
     setup_logging()
 
-    device = "/dev/ttyACM1"
+    device = "/dev/ttyACM2"
     network_id = "9e32e295-60be-4b9c-91d9-cd7942756496"
 
     baseDir, baseFile = os.path.split(os.path.abspath(__file__))

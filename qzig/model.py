@@ -143,3 +143,8 @@ class Model():
     def permit(self, timeout):
         v = yield from self._parent.permit(timeout)
         return v
+
+    @asyncio.coroutine
+    def permit_with_key(self, node, code, timeout):
+        v = yield from self._parent.permit_with_key(node, code, timeout)
+        return v

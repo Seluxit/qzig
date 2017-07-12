@@ -109,7 +109,7 @@ def test_gateway_add(app, store):
     assert len(store.listdir()) == 2
     assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
-    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 2
 
 
 def test_gateway_load(app, tmpdir, store):
@@ -119,11 +119,11 @@ def test_gateway_load(app, tmpdir, store):
     assert len(store.listdir()) == 2
     assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
-    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 2
 
     util._startup(app)
 
     assert len(store.listdir()) == 2
     assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
-    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 1
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 2

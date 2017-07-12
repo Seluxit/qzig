@@ -34,8 +34,13 @@ class ValueSetType():
 
 
 class ValueStringType():
-    max = 1
-    encoding = ""
+    def __init__(self, data=None):
+        if data is None:
+            self.max = 1
+            self.encoding = ""
+        else:
+            self.max = data["max"]
+            self.encoding = data["encoding"]
 
 
 class ValueBlobType():
@@ -103,10 +108,10 @@ class Value(model.Model):
 
         if "number" in self.data:
             self.data["number"] = ValueNumberType(self.data["number"])
+        elif "string" in self.data:
+            self.data["string"] = ValueStringType(self.data["string"])
         # elif "set" in self.data:
         #    self.data["set"] = ValueSetType(self.data["set"])
-        # elif "string" in self.data:
-        #    self.data["string"] = ValueStringType(self.data["string"])
         # elif "blob" in self.data:
         #     self.data["blob"] = ValueBlobType(self.data["blob"])
         # elif "xml" in self.data:
