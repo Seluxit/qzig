@@ -91,7 +91,7 @@ class NetworkJoinKey(value.Value):
         self.data["string"].encoding = "hexbinary"
         self.data["string"].max = 26
 
-    def handle_report(self, attribute, data):
+    def handle_report(self, attribute, data):  # pragma: no cover
         return data
 
     @asyncio.coroutine
@@ -100,14 +100,15 @@ class NetworkJoinKey(value.Value):
             data = bytearray.fromhex(data)
         except Exception as e:
             LOGGER.error(e)
-            return e
+            return "Invalid hex data"
 
         if len(data) < 18:
-            return "install code has to be minimal 18 charaters"
+            return "Install code has to be minimal 18 charaters, not %d" % len(data)
 
         node = data[0:8]
         code = data[8:]
 
         v = yield from self.permit_with_key(node, code, 180)
         LOGGER.debug(v)
+
         return True

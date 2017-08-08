@@ -20,6 +20,7 @@ class Application():
         self.port = 42005
         self.ssl = None
         self._gateway = gateway.Gateway
+        self._transport = json_rpc
 
     def gateway(self, gateway):
         self._gateway = gateway
@@ -27,6 +28,9 @@ class Application():
     def rootdir(self, rootdir):
         self._database = rootdir + "qzig.db"
         self._network._rootdir = rootdir
+
+    def transport(self, transport):
+        self._transport = transport
 
     def rpc_connection(self, host, port, ssl):
         self.host = host
@@ -62,7 +66,7 @@ class Application():
         self._zb = zigbee.ZigBee(self, self._dev, self._database)
         yield from self._zb.connect()
 
-        self._rpc = yield from json_rpc.connect(self)
+        self._rpc = yield from self._transport.connect(self)
 
     def close(self):
         try:

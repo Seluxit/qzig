@@ -1,5 +1,6 @@
 import os
 import tests.util as util
+from unittest import mock
 from tests.util import MockDevice, MockEndpoint, MockCluster
 
 
@@ -127,3 +128,10 @@ def test_gateway_load(app, tmpdir, store):
     assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
     assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 2
+
+
+def test_change_transport(app):
+    trans = mock.MagicMock
+    app.transport(trans)
+
+    assert app._transport == trans

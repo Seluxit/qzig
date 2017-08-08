@@ -14,6 +14,7 @@ class ControllerMock():
         self.devices = app_devices
         self._cb = None
         self.permit = mock.MagicMock()
+        self.permit_with_key = mock.MagicMock()
 
     @asyncio.coroutine
     def startup(self, opt):
