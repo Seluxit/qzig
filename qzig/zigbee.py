@@ -39,6 +39,7 @@ class ZigBee():
 
         for ieee, dev in self.controller.devices.items():
             LOGGER.info("Device:")
+            print(dir(dev))
             LOGGER.info("  NWK: 0x%04x" % (dev._nwk, ))
             LOGGER.info("  IEEE: %s" % (ieee, ))
             LOGGER.info("  Endpoints:")
