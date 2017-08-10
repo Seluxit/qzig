@@ -3,6 +3,7 @@
 import logging
 import ssl
 import os
+import argparse
 
 import qzig.application as application
 
@@ -29,8 +30,13 @@ def setup_logging():
 def main():  # pragma: no cover
     setup_logging()
 
-    device = "/dev/ttyACM2"
-    network_id = "9e32e295-60be-4b9c-91d9-cd7942756496"
+    parser = argparse.ArgumentParser(description='ZigBee Converter for Seluxit Q platform.')
+    parser.add_argument('device', nargs=1, help='The ZigBee serial device')
+    parser.add_argument('networkID', nargs='*', default='9e32e295-60be-4b9c-91d9-cd7942756496', help='The network ID that qzig should use')
+    args = parser.parse_args()
+
+    device = args.device[0]
+    network_id = args.networkID[0]
 
     baseDir, baseFile = os.path.split(os.path.abspath(__file__))
     certBase = baseDir

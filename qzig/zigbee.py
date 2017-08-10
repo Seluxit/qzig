@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import serial
+import sys
 
 import bellows.zigbee.application as zigbee
 import bellows.ezsp
@@ -16,10 +18,15 @@ class ZigBee():
 
     @asyncio.coroutine
     def connect(self):
-        LOGGER.debug("Connecting...")
+        LOGGER.debug("Connecting to ZigBee...")
         s = bellows.ezsp.EZSP()
-        yield from s.connect(self.dev)
-        LOGGER.debug("Connected")
+        try:
+            yield from s.connect(self.dev)
+        except serial.serialutil.SerialException:
+            LOGGER.info("Failed to connect to ZigBee on port %s" % self.dev)
+            sys.exit(-1)
+
+        LOGGER.debug("Connected to ZigBee")
 
         LOGGER.debug("Configuring...")
         self.controller = zigbee.ControllerApplication(s, self.db)
