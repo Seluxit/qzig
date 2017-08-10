@@ -31,7 +31,7 @@ class ControllerMock():
 class MockDevice():
     def __init__(self, ieee, nwk):
         self.ieee = ieee
-        self._nwk = nwk
+        self.nwk = nwk
         self.endpoints = {0: {}}
         self.zdo = MockCluster(0)
 
@@ -41,7 +41,8 @@ class MockEndpoint():
         self.profile_id = 1
         self.device_type = 1
         self.endpoint_id = endpoint_id
-        self.clusters = {}
+        self.in_clusters = {}
+        self.out_clusters = {}
         self.status = bellows.zigbee.endpoint.Status.ZDO_INIT
 
 
@@ -130,7 +131,7 @@ def _startup(app, devs={}, server_devices=[]):
 
 def _get_device(cluster=6):
     endpoint = MockEndpoint(1)
-    endpoint.clusters[cluster] = MockCluster(cluster)
+    endpoint.in_clusters[cluster] = MockCluster(cluster)
     device = MockDevice("11:22:33", 1)
     device.endpoints[1] = endpoint
     return {"device1": device}

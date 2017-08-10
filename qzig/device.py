@@ -65,8 +65,13 @@ class Device(model.Model):
             if e_id == 0:
                 continue
 
-            for c_id in endpoint.clusters:
-                cluster = endpoint.clusters[c_id]
+            for c_id in endpoint.in_clusters:
+                cluster = endpoint.in_clusters[c_id]
+                val = self.add_value(e_id, c_id)
+                yield from val.parse_cluster(endpoint, cluster)
+
+            for c_id in endpoint.out_clusters:
+                cluster = endpoint.out_clusters[c_id]
                 val = self.add_value(e_id, c_id)
                 yield from val.parse_cluster(endpoint, cluster)
 
@@ -98,11 +103,11 @@ class Device(model.Model):
                 continue
 
             endp = self._dev.endpoints[e_id]
-            if 0 not in endp.clusters:
+            if 0 not in endp.in_clusters:
                 LOGGER.error("Device %s do not have cluster 0 on endpoint 1",
                              str(self._dev.ieee))
                 continue
-            cluster = endp.clusters[0]
+            cluster = endp.in_clusters[0]
 
             LOGGER.debug("Reading attributes from device %s", str(self._dev.ieee))
             try:

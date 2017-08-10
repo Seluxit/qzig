@@ -55,15 +55,17 @@ def test_zigbee_device_and_endpoint_and_many_cluster(app):
     app.gateway(None)
     endpoint = MockEndpoint(1)
     for c in range(0, 100):
-        endpoint.clusters[c] = MockCluster(c)
-    endpoint.clusters[0x0402] = MockCluster(0x0402)
+        endpoint.in_clusters[c] = MockCluster(c)
+    for c in range(100, 200):
+        endpoint.out_clusters[c] = MockCluster(c)
+    endpoint.in_clusters[0x0402] = MockCluster(0x0402)
     device = MockDevice("11:22:33", 1)
     device.endpoints[1] = endpoint
     devices = {"device1": device}
     util._startup(app, devices)
 
-    assert endpoint.clusters[0]._cb is None
-    assert endpoint.clusters[6]._cb is not None
+    assert endpoint.in_clusters[0]._cb is None
+    assert endpoint.in_clusters[6]._cb is not None
 
 
 def test_load_json(app, tmpdir, store):

@@ -80,19 +80,19 @@ def test_zigbee_zdo_command(app):
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
-    cluster = dev.endpoints[1].clusters[6]
+    cluster = dev.endpoints[1].in_clusters[6]
 
     assert cluster._cb is not None
 
     cluster._cb.zdo_command(0, 0)
 
 
-def test_zigbee_attribute_update(app):
+def test_zigbee_input_attribute_update(app):
     devices = util._get_device()
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
-    cluster = dev.endpoints[1].clusters[6]
+    cluster = dev.endpoints[1].in_clusters[6]
 
     assert cluster._cb is not None
 
@@ -111,7 +111,7 @@ def test_zigbee_wrong_attribute_update(app):
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
-    cluster = dev.endpoints[1].clusters[6]
+    cluster = dev.endpoints[1].in_clusters[6]
 
     assert cluster._cb is not None
 
@@ -129,7 +129,7 @@ def test_zigbee_attribute_update_error_reply(app):
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
-    cluster = dev.endpoints[1].clusters[6]
+    cluster = dev.endpoints[1].in_clusters[6]
 
     assert cluster._cb is not None
 
@@ -145,7 +145,7 @@ def test_zigbee_temperature_update(app):
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
-    cluster = dev.endpoints[1].clusters[0x0402]
+    cluster = dev.endpoints[1].in_clusters[0x0402]
 
     assert cluster._cb is not None
 

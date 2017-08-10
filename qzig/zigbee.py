@@ -22,7 +22,7 @@ class ZigBee():
         s = bellows.ezsp.EZSP()
         try:
             yield from s.connect(self.dev)
-        except serial.serialutil.SerialException:
+        except serial.serialutil.SerialException:  # pragma: no cover
             LOGGER.info("Failed to connect to ZigBee on port %s" % self.dev)
             sys.exit(-1)
 
@@ -39,8 +39,7 @@ class ZigBee():
 
         for ieee, dev in self.controller.devices.items():
             LOGGER.info("Device:")
-            print(dir(dev))
-            LOGGER.info("  NWK: 0x%04x" % (dev._nwk, ))
+            LOGGER.info("  NWK: 0x%04x" % (dev.nwk, ))
             LOGGER.info("  IEEE: %s" % (ieee, ))
             LOGGER.info("  Endpoints:")
             for epid, ep in dev.endpoints.items():
@@ -56,12 +55,19 @@ class ZigBee():
                             ep.device_type,
                         )
                     )
-                    clusters = sorted(list(ep.clusters.keys()))
+                    clusters = sorted(list(ep.in_clusters.keys()))
                     if clusters:
-                        LOGGER.info("      Clusters:")
+                        LOGGER.info("      Input Clusters:")
                         for cluster in clusters:
                             LOGGER.info("        %s (%s)" % (
-                                ep.clusters[cluster].name, cluster
+                                ep.in_clusters[cluster].name, cluster
+                            ))
+                    clusters = sorted(list(ep.out_clusters.keys()))
+                    if clusters:
+                        LOGGER.info("      Output Clusters:")
+                        for cluster in clusters:
+                            LOGGER.info("        %s (%s)" % (
+                                ep.out_clusters[cluster].name, cluster
                             ))
 
     def close(self):
