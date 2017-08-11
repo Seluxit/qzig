@@ -32,7 +32,7 @@ def main():  # pragma: no cover
 
     parser = argparse.ArgumentParser(description='ZigBee Converter for Seluxit Q platform.')
     parser.add_argument('device', nargs=1, help='The ZigBee serial device')
-    parser.add_argument('networkID', nargs='*', default='9e32e295-60be-4b9c-91d9-cd7942756496', help='The network ID that qzig should use')
+    parser.add_argument('networkID', nargs='?', default='9e32e295-60be-4b9c-91d9-cd7942756496', help='The network ID that qzig should use')
     args = parser.parse_args()
 
     device = args.device[0]
