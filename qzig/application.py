@@ -12,47 +12,38 @@ LOGGER = logging.getLogger(__name__)
 
 class Application():
 
-    def __init__(self, device, network_id):
+    def __init__(self, device, network_id, **options):
         self._dev = device
-        self._database = "qzig.db"
         self._network = network.Network(self, network_id)
-        self.host = "localhost"
-        self.port = 42005
-        self.ssl = None
-        self._gateway = gateway.Gateway
-        self._transport = json_rpc
 
-    def gateway(self, gateway):
-        self._gateway = gateway
+        self.ssl = options.get("ssl")
+        self.host = options.get("host") or "localhost"
+        self.port = options.get("port") or 42005
+        self._database = options.get("database") or "qzig.db"
+        self._gateway = options.get("gateway") or gateway.Gateway
+        self._transport = options.get("transport") or json_rpc
+        self._loop = options.get("loop") or asyncio.get_event_loop()
 
-    def rootdir(self, rootdir):
-        self._database = rootdir + "qzig.db"
-        self._network._rootdir = rootdir
-
-    def transport(self, transport):
-        self._transport = transport
-
-    def rpc_connection(self, host, port, ssl):
-        self.host = host
-        self.port = port
-        self.ssl = ssl
+        rootdir = options.get("rootdir")
+        if rootdir:
+            self._database = rootdir + self._database
+            self._network._rootdir = rootdir
 
     def run(self):  # pragma: no cover
         """Main event loop"""
-        loop = asyncio.get_event_loop()
         try:
-            loop.run_until_complete(self.init())
-            loop.run_forever()
+            self._loop.run_until_complete(self.init())
+            self._loop.run_forever()
         except KeyboardInterrupt as e:
             LOGGER.warning("Caught keyboard interrupt. Canceling tasks...")
             self.close()
             for task in asyncio.Task.all_tasks():
                 task.cancel()
 
-            loop.run_until_complete(asyncio.sleep(.1))
+            self._loop.run_until_complete(asyncio.sleep(.1))
         finally:
             LOGGER.debug("Stopping loop")
-            loop.close()
+            self._loop.close()
 
     @asyncio.coroutine
     def init(self):

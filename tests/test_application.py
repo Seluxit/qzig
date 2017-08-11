@@ -1,11 +1,10 @@
 import os
 import tests.util as util
-from unittest import mock
 from tests.util import MockDevice, MockEndpoint, MockCluster
 
 
 def test_init(app, tmpdir, store):
-    app.gateway(None)
+    app._gateway = None
     util._startup(app)
 
     assert app._zb.controller._cb is not None
@@ -15,7 +14,7 @@ def test_init(app, tmpdir, store):
 
 
 def test_only_zigbee_devices(app, store):
-    app.gateway(None)
+    app._gateway = None
     device = MockDevice("11:22:33", 1)
     devices = {"device1": device}
     util._startup(app, devices)
@@ -25,7 +24,7 @@ def test_only_zigbee_devices(app, store):
 
 
 def test_only_zigbee_device_and_endpoint(app, store):
-    app.gateway(None)
+    app._gateway = None
     endpoint = MockEndpoint(1)
     device = MockDevice("11:22:33", 1)
     device.endpoints[1] = endpoint
@@ -38,7 +37,7 @@ def test_only_zigbee_device_and_endpoint(app, store):
 
 
 def test_zigbee_device_and_endpoint_and_cluster(app, store):
-    app.gateway(None)
+    app._gateway = None
     devices = util._get_device()
     util._startup(app, devices)
 
@@ -52,7 +51,7 @@ def test_zigbee_device_and_endpoint_and_cluster(app, store):
 
 
 def test_zigbee_device_and_endpoint_and_many_cluster(app):
-    app.gateway(None)
+    app._gateway = None
     endpoint = MockEndpoint(1)
     for c in range(0, 100):
         endpoint.in_clusters[c] = MockCluster(c)
@@ -69,7 +68,7 @@ def test_zigbee_device_and_endpoint_and_many_cluster(app):
 
 
 def test_load_json(app, tmpdir, store):
-    app.gateway(None)
+    app._gateway = None
     data = tmpdir + "/../test_zigbee_device_and_endpoin0store/"
     os.system("cp -rf %s %s" % (data, store))
 
@@ -130,10 +129,3 @@ def test_gateway_load(app, tmpdir, store):
     assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
     assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 2
-
-
-def test_change_transport(app):
-    trans = mock.MagicMock
-    app.transport(trans)
-
-    assert app._transport == trans

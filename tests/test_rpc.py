@@ -303,7 +303,7 @@ def test_gateway_permit_with_key_short_hex(app):
 
 
 def test_delete_device(app, store):
-    app.gateway(None)
+    app._gateway = None
     devices = util._get_device()
     util._startup(app, devices)
 
@@ -326,7 +326,7 @@ def test_delete_device(app, store):
 
 
 def test_get_value(app):
-    app.gateway(None)
+    app._gateway = None
     devices = util._get_device()
     util._startup(app, devices)
 

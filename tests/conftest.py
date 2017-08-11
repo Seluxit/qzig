@@ -20,9 +20,7 @@ def app(tmpdir):
     dev = "/dev/null"
     id = "test_id"
 
-    app = application.Application(dev, id)
-    app.rootdir(str(tmpdir))
-    app.rpc_connection(0, 0, 0)
+    app = application.Application(dev, id, rootdir=str(tmpdir), port=1, host="test", ssl="no")
 
     bellows.ezsp.EZSP = mock.MagicMock
     bellows.zigbee.application.ControllerApplication = util.ControllerMock
@@ -35,9 +33,9 @@ def app(tmpdir):
 
     qzig.json_rpc.connect = rpc_connect
 
-    assert app.host == 0
-    assert app.port == 0
-    assert app.ssl == 0
+    assert app.host == "test"
+    assert app.port == 1
+    assert app.ssl == "no"
 
     yield app
 
