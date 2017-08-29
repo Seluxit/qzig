@@ -12,6 +12,8 @@ def test_zigbee_attribute_update_callback(app):
 
 def test_zigbee_device_joined(app):
     devices = util._get_device()
+    print(devices)
+    print(devices['device1'].endpoints[1].in_clusters)
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
@@ -156,4 +158,26 @@ def test_zigbee_temperature_update(app):
     util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
-    assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"12345678.9"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_zigbee_ota_update(app):
+    devices = util._get_device(0x0019)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[0x0019]
+
+    assert cluster._cb is not None
+
+    cluster._cb.cluster_command(0, 0, 1, (1, 2, 2, 2, 2))
+
+    util.run_loop()
+
+    cluster._cb.cluster_command(0, 0, 3, (1, 2, 2, 2, 0, 50))
+
+    util.run_loop()
+
+    cluster._cb.cluster_command(0, 0, 5, (1, 2, 2, 2, 2))
+
+    util.run_loop()

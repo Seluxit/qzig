@@ -125,8 +125,8 @@ class Device(model.Model):
 
     def _handle_attributes_reply(self, attr):
         if attr[1]:
-            LOGGER.error("Failed to get attributes from device")
-        else:
+            LOGGER.error("Failed to get attributes from device (%s)", attr[1])
+        if attr[0]:
             self._parse_attributes(attr[0])
 
     def _parse_attributes(self, attr):

@@ -19,6 +19,7 @@ class Network(model.Model):
             "name": "ZigBee Network",
             "device": []
         }
+
         self.attr = {}
         self._children = []
         self._rootdir = ""

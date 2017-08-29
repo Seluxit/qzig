@@ -60,17 +60,19 @@ class ValueStatus(enum.Enum):
 
 
 class Value(model.Model):
+    _bind = False
 
     def __init__(self, parent, endpoint_id=None, cluster_id=None, load=None):
         self._parent = parent
         self._children = []
+
         self.attr = {
             "endpoint_id": endpoint_id,
             "cluster_id": cluster_id
         }
 
         if load is None:
-            self._bind = True
+            self._should_bind = True
             self._init()
             if self.data is None:
                 return
@@ -81,7 +83,7 @@ class Value(model.Model):
             else:
                 self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
         else:
-            self._bind = False
+            self._should_bind = False
             self._load(load)
 
     def _init(self):
@@ -126,7 +128,8 @@ class Value(model.Model):
             rep = self.get_state(state.StateType.REPORT)
             if rep is not None:
                 cluster.add_listener(rep)
-                if self._bind:
+                if self._should_bind and self._bind:
+                    LOGGER.debug("Binding to %s" % self.data["name"])
                     yield from self.bind(self.endpoint_id, self.cluster_id)
 
     def add_states(self, types):
@@ -158,25 +161,40 @@ class Value(model.Model):
             tmp["state"].append(s.get_data())
         return tmp
 
-    def handle_report(self, attribute, data):  # pragma: no cover
-        pass
+    def handle_report(self, attribute, data):
+        if hasattr(self, '_attribute'):
+            if self._attribute == attribute:
+                return data
 
-    def delayed_report(self, time, value):
+    def delayed_report(self, time, attribute, value):
         async_fun = getattr(asyncio, "ensure_future", asyncio.async)
-        return async_fun(self._delayed_report(time, value))
+        return async_fun(self._delayed_report(time, attribute, value))
 
     @asyncio.coroutine
-    def _delayed_report(self, time, value):
+    def _delayed_report(self, time, attribute, value):
         s = self.get_state(state.StateType.REPORT)
         if s is not None:
             yield from asyncio.sleep(time)
-            s.attribute_updated(0, value)
+            s.attribute_updated(attribute, value)
+
+    def async_command(self, value, *args):
+        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
+        return async_fun(self._async_command(value, args))
+
+    @asyncio.coroutine
+    def _async_command(self, value, args):
+        yield from value.send_command(args)
 
     @asyncio.coroutine
     def handle_control(self, data):  # pragma: no cover
         LOGGER.error("Called unhandled handle_control")
-        pass
 
     @asyncio.coroutine
-    def handle_get(self):  # pragma: no cover
+    def handle_get(self):
+        if hasattr(self, '_attribute'):
+            v = yield from self._cluster.read_attributes([self._attribute], allow_cache=False)
+            if v and self._attribute in v[0]:
+                self.delayed_report(0, self._attribute, v[0][self._attribute])
+                return True
+
         return False

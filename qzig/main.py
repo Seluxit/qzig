@@ -36,7 +36,7 @@ def main():  # pragma: no cover
     args = parser.parse_args()
 
     device = args.device[0]
-    network_id = args.networkID[0]
+    network_id = args.networkID
 
     baseDir, baseFile = os.path.split(os.path.abspath(__file__))
     certBase = baseDir
@@ -49,8 +49,7 @@ def main():  # pragma: no cover
     ssl_ctx.load_verify_locations(cafile=sslServerCert)
     ssl_ctx.verify_mode = ssl.CERT_REQUIRED
 
-    app = application.Application(device, network_id)
-    app.rpc_connection("q-wot.com", 21005, ssl_ctx)
+    app = application.Application(device, network_id, host="q-wot.com", port=21005, ssl=ssl_ctx)
     app.run()
 
 

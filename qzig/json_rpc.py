@@ -43,7 +43,14 @@ class JsonRPC(asyncio.Protocol):
 
     def connection_lost(self, exc):
         if self._app is not None:
-            print("Connection lost, reconnect...")
+            LOGGER.debug("Connection lost, reconnect...")
+            loop = asyncio.get_event_loop()
+            self._transport = loop.create_connection(
+                ssl=self._app.ssl,
+                server_hostname=self._app.host,
+                host=self._app.host,
+                port=self._app.port
+            )
 
     def close(self):
         """Close the server connection and queues"""

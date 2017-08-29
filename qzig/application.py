@@ -14,9 +14,12 @@ class Application():
 
     def __init__(self, device, network_id, **options):
         self._dev = device
+        self._network_id = network_id
         self._network = network.Network(self, network_id)
 
         self.ssl = options.get("ssl")
+        self._baudrate = options.get("baudrate")
+
         self.host = options.get("host") or "localhost"
         self.port = options.get("port") or 42005
         self._database = options.get("database") or "qzig.db"
@@ -55,7 +58,7 @@ class Application():
     @asyncio.coroutine
     def connect(self):
         self._zb = zigbee.ZigBee(self, self._dev, self._database)
-        yield from self._zb.connect()
+        yield from self._zb.connect(baudrate=self._baudrate)
 
         self._rpc = yield from self._transport.connect(self)
 
@@ -72,6 +75,15 @@ class Application():
     def _load(self):
         self._network.load()
 
+        while True:
+            try:
+                yield from self._load_devices()
+                break
+            except RuntimeError as e:
+                # Handle the error that the list of devices changes while looping it.
+                LOGGER.warning(e)
+
+    def _load_devices(self):
         for ieee, dev in self._zb.devices():
             yield from self._network.add_device(dev)
 
@@ -101,6 +113,14 @@ class Application():
     @asyncio.coroutine
     def _clean_server_devices(self):
         devices = yield from self._rpc.get("/network/" + self._network.id + "/device")
+        if devices.get("code") is not None:
+            LOGGER.error("Failed to get devices from server: %s" % devices.get("message"))
+            return
+
+        # Make sure that we do not loop the string as an array
+        if isinstance(devices["id"], str):
+            devices["id"] = [devices["id"]]
+
         for id in devices["id"]:
             dev = self._network.get_device("", id)
             if dev is None:
@@ -124,7 +144,7 @@ class Application():
         val = gw.get_value(-1, -1)
         if hasattr(val, "_report_fut"):
             val._report_fut.cancel()  # pragma: no cover
-        val.delayed_report(0, 0)
+        val.delayed_report(0, 0, 0)
 
     def device_initialized(self, device):
         LOGGER.debug("Device initlized %s", str(device.ieee))
@@ -170,7 +190,7 @@ class Application():
 
         service, id = self._split_url(url)
 
-        if service == "state":
+        if True or service == "state":
             s = self._network.find_child(id)
             if s is None:
                 return "Failed to find id %s" % id

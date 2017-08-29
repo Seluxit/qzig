@@ -233,7 +233,7 @@ def test_device_change_state(app):
 def test_gateway_permit(app):
     util._startup(app)
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-1, -1).get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -251,8 +251,13 @@ def test_gateway_permit(app):
 def test_gateway_permit_with_key(app):
     util._startup(app)
 
-    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-2, -2).get_state(state.StateType.CONTROL)
     assert s is not None
+    print("Child", app._network._children)
+    print("get", app._network._children[0].get_value(-2, -2))
+    print("get chr", app._network._children[0].get_value(-2, -2)._children)
+    print("s", s)
+    print("Par", s._parent)
 
     id = s.id
     rpc = util._rpc_state(id, "00112233445566778899AABBCCDDEEFF1122")
@@ -269,11 +274,11 @@ def test_gateway_permit_with_key(app):
 def test_gateway_permit_with_key_invalid_hex(app):
     util._startup(app)
 
-    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-2, -2).get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
-    rpc = util._rpc_state(id, 0)
+    rpc = util._rpc_state(id, "T")
     app._rpc.data_received(rpc.encode())
 
     count = app._rpc._transport.write.call_count

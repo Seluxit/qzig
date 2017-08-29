@@ -37,7 +37,7 @@ class Gateway(device.Device):
             id = args["load"]["attr"]["cluster_id"]
         else:
             id = args["cluster_id"]
-        print(args, id)
+
         if id == -2:
             return NetworkJoinKey(self, **args)
         else:
@@ -45,6 +45,8 @@ class Gateway(device.Device):
 
 
 class NetworkPermit(value.Value):
+    _attribute = 0
+
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
@@ -61,17 +63,14 @@ class NetworkPermit(value.Value):
         self.data["number"].step = 1
         self.data["number"].unit = "seconds"
 
-    def handle_report(self, attribute, data):
-        return data
-
     @asyncio.coroutine
     def handle_control(self, data):
         t = int(data)
         v = yield from self.permit(t)
         LOGGER.debug(v)
 
-        self.delayed_report(0, t)
-        self._report_fut = self.delayed_report(t, 0)
+        self.delayed_report(0, 0, t)
+        self._report_fut = self.delayed_report(t, 0, 0)
 
         return True
 
@@ -92,6 +91,8 @@ class NetworkJoinKey(value.Value):
         self.data["string"].max = 26
 
     def handle_report(self, attribute, data):  # pragma: no cover
+        # test code => 000b57fffe42661a11223344556677884AF7
+        #              000b57fffe42a0b311223344556677884AF7
         return data
 
     @asyncio.coroutine

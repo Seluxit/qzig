@@ -41,6 +41,9 @@ class State(model.Model):
             "data": "0"
         }
 
+        if self._parent.data.get("number") is None:
+            self.data["data"] = ""
+
     def _parse(self):
         self.data["type"] = StateType(self.data["type"])
 
@@ -75,6 +78,12 @@ class State(model.Model):
         self.save()
 
         self.send_put("", self.get_data())
+
+    def cluster_command(self, aps_frame, tsn, command_id, args):
+        if hasattr(self._parent, 'handle_command'):
+            self._parent.handle_command(aps_frame, tsn, command_id, args)
+        else:
+            LOGGER.debug("No command handler")
 
     @asyncio.coroutine
     def handle_get(self):
