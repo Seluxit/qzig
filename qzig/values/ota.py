@@ -77,11 +77,11 @@ class Ota(value.Value):
         try:
             f = open(filename, "rb")
             f.seek(offset)
-            data = f.read(10)#max_size)
+            data = f.read(max_size)
             size = len(data)
 
             LOGGER.debug("Sending OTA Image Block Response frame - Offset %s Size %s", offset, size)
-            self.async_command(self, 'image_block_response', Status.SUCCESS, manufacturer_id, image_type, version, offset, size, data)
+            self.async_command(self, 'image_block_response', Status.SUCCESS, manufacturer_id, image_type, version, offset, data)
         except:
             LOGGER.error("Failed to load data from file %s", filename)
             self.async_command(self, 'image_block_response', Status.ABORT, 0, 0, 0, 0, 0)
@@ -95,4 +95,4 @@ class Ota(value.Value):
         func = args[0]
         args = args[1:]
 
-        yield from self._cluster.client_command(func)(*args)
+        yield from self._cluster.__getattr__(func)(*args)
