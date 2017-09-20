@@ -18,7 +18,7 @@ class Application():
         self._network = network.Network(self, network_id)
 
         self.ssl = options.get("ssl")
-        self._baudrate = options.get("baudrate")
+        self._baudrate = options.get("baudrate") or 115200
 
         self.host = options.get("host") or "localhost"
         self.port = options.get("port") or 42005
@@ -58,7 +58,7 @@ class Application():
     @asyncio.coroutine
     def connect(self):
         self._zb = zigbee.ZigBee(self, self._dev, self._database)
-        yield from self._zb.connect(baudrate=self._baudrate)
+        yield from self._zb.connect(self._baudrate)
 
         self._rpc = yield from self._transport.connect(self)
 

@@ -11,17 +11,17 @@ LOGGER = logging.getLogger(__name__)
 
 class ZigBee():
 
-    def __init__(self, application, device, databse_file):
+    def __init__(self, application, device, database_file):
         self.app = application
         self.dev = device
-        self.db = databse_file
+        self.db = database_file
 
     @asyncio.coroutine
-    def connect(self, baudrate=None):
+    def connect(self, baudrate):
         LOGGER.debug("Connecting to ZigBee...")
         s = bellows.ezsp.EZSP()
         try:
-            yield from s.connect(self.dev)  # , baudrate=baudrate)
+            yield from s.connect(self.dev, baudrate)
         except serial.serialutil.SerialException:  # pragma: no cover
             LOGGER.info("Failed to connect to ZigBee on port %s" % self.dev)
             sys.exit(-1)
