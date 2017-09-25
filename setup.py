@@ -14,7 +14,6 @@ setup(
     download_url="https://github.com/Seluxit/qzig",
     bugtrack_url="https://github.com/Seluxit/qzig/issues",
     packages=find_packages(exclude=['*.tests']),
-    scripts=["qzig/main.py"],
     entry_points={
         'console_scripts': ['qzig=qzig.main:main'],
     },
