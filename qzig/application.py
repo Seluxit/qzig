@@ -136,6 +136,11 @@ class Application():
     def device_left(self, device):
         LOGGER.debug("Device left %s", str(device.ieee))
         async_fun = getattr(asyncio, "ensure_future", asyncio.async)
+        async_fun(self._zb.controller.remove(device.ieee))
+
+    def device_removed(self, device):
+        LOGGER.debug("Device removed %s", str(device.ieee))
+        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
         async_fun(self._network.remove_device(device))
 
     def device_joined(self, device):
