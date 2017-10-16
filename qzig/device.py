@@ -45,9 +45,13 @@ class Device(model.Model):
             c = values.get_value_class(cid)
 
         if c is None:
-            return value.Value(self, **args)
+            val = value.Value(self, **args)
         else:
-            return c(self, **args)
+            val = c(self, **args)
+
+        if "endpoint_id" in args and args["endpoint_id"] != 1:
+            val.data["name"] = val.data["name"] + " " + str(args["endpoint_id"])
+        return val
 
     @property
     def ieee(self):

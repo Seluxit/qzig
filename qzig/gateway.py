@@ -93,6 +93,8 @@ class NetworkJoinKey(value.Value):
     def handle_report(self, attribute, data):  # pragma: no cover
         # test code => 000b57fffe42661a11223344556677884AF7
         #              000b57fffe42a0b311223344556677884AF7
+        #              000b57fffe8074f411223344556677884AF7
+
         return data
 
     @asyncio.coroutine
