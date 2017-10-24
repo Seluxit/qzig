@@ -27,6 +27,12 @@ class ControllerMock():
     def add_listener(self, obj):
         self._cb = obj
 
+    @asyncio.coroutine
+    def remove(self, obj):
+        devices = _get_device()
+        dev = next(iter(devices.values()))
+        self._cb.device_removed(dev)
+
 
 class MockDevice():
     def __init__(self, ieee, nwk):
@@ -60,7 +66,7 @@ class MockCluster():
             return [{0: 0}, 0]
         else:
             if self.reply_count == 1:
-                return [{1: 0, 4: b'test', 5: b'test', 10: b'0'}, 0]
+                return [{1: 0, 4: b'test', 5: b'test', 7: 3, 10: b'0'}, 0]
             elif self.reply_count == 2:
                 return [0, 1]
             else:
@@ -85,11 +91,25 @@ class MockCluster():
         return [0, 0]
 
     @asyncio.coroutine
+    def on_with_timed_off(self, timeout):
+        self._timeout = timeout
+        return [timeout, 0]
+
+    @asyncio.coroutine
     def identify(self, timeout):
         self._identify = True
 
     def add_listener(self, obj):
-        self._cb = obj
+        if self._cb is None:
+            self._cb = []
+        self._cb.append(obj)
+
+    @asyncio.coroutine
+    def dummy(self, *args):
+        pass
+
+    def __getattr__(self, *args):
+        return self.dummy
 
 
 def run_loop():

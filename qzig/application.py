@@ -79,7 +79,7 @@ class Application():
             try:
                 yield from self._load_devices()
                 break
-            except RuntimeError as e:
+            except RuntimeError as e:  # pragma: no cover
                 # Handle the error that the list of devices changes while looping it.
                 LOGGER.warning(e)
 
@@ -113,13 +113,13 @@ class Application():
     @asyncio.coroutine
     def _clean_server_devices(self):
         devices = yield from self._rpc.get("/network/" + self._network.id + "/device")
-        if devices.get("code") is not None:
+        if devices.get("code") is not None:  # pragma: no cover
             LOGGER.error("Failed to get devices from server: %s" % devices.get("message"))
             return
 
         # Make sure that we do not loop the string as an array
         if isinstance(devices["id"], str):
-            devices["id"] = [devices["id"]]
+            devices["id"] = [devices["id"]]  # pragma: nocover
 
         for id in devices["id"]:
             dev = self._network.get_device("", id)
@@ -195,7 +195,7 @@ class Application():
 
         service, id = self._split_url(url)
 
-        if True or service == "state":
+        if service == "state":
             s = self._network.find_child(id)
             if s is None:
                 return "Failed to find id %s" % id

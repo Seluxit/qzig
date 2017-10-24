@@ -102,8 +102,13 @@ class Model():
                 with open(dir + "/" + child_name + ".json", 'r') as f:
                     load = json.load(f)
                     c = self.create_child(load=load)
-                    self._children.append(c)
-                    c.load_children()
+                    if isinstance(c, list):
+                        for ch in c:
+                            self._children.append(ch)
+                            ch.load_children()
+                    else:
+                        self._children.append(c)
+                        c.load_children()
 
     def send_put(self, url, data):
         url = "/" + self.name + "/" + self.id + url

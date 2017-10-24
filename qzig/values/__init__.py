@@ -7,7 +7,7 @@ from qzig.values import onoff, identify, temperature, humidity, diagnostics, ota
 
 def get_value_class(cluster_id):
     if cluster_id == general_clusters.OnOff.cluster_id:
-        return onoff.OnOff
+        return [onoff.OnOff, onoff.OnTimeout]
     elif cluster_id == general_clusters.Identify.cluster_id:
         return identify.Identify
     elif cluster_id == measurement_clusters.TemperatureMeasurement.cluster_id:

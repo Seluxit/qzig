@@ -39,9 +39,9 @@ class Gateway(device.Device):
             id = args["cluster_id"]
 
         if id == -2:
-            return NetworkJoinKey(self, **args)
+            return [NetworkJoinKey(self, **args)]
         else:
-            return NetworkPermit(self, **args)
+            return [NetworkPermit(self, **args)]
 
 
 class NetworkPermit(value.Value):

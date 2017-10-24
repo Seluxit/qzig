@@ -174,6 +174,27 @@ def test_state_on_change(app):
     assert '"data": "1"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_state_on_timeout_change(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    count = app._rpc._transport.write.call_count
+
+    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, "1")
+    app._rpc.data_received(rpc.encode())
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"data": "10"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_state_report_change(app):
     devices = util._get_device()
     util._startup(app, devices)
@@ -253,11 +274,6 @@ def test_gateway_permit_with_key(app):
 
     s = app._network._children[0].get_value(-2, -2).get_state(state.StateType.CONTROL)
     assert s is not None
-    print("Child", app._network._children)
-    print("get", app._network._children[0].get_value(-2, -2))
-    print("get chr", app._network._children[0].get_value(-2, -2)._children)
-    print("s", s)
-    print("Par", s._parent)
 
     id = s.id
     rpc = util._rpc_state(id, "00112233445566778899AABBCCDDEEFF1122")

@@ -68,7 +68,6 @@ class State(model.Model):
 
     def attribute_updated(self, attribute, data):
         data = self._parent.handle_report(attribute, data)
-
         if data is None:
             return
 
@@ -83,7 +82,7 @@ class State(model.Model):
         if hasattr(self._parent, 'handle_command'):
             self._parent.handle_command(aps_frame, tsn, command_id, args)
         else:
-            LOGGER.debug("No command handler")
+            LOGGER.debug("No command handler")  # pragma: no cover
 
     @asyncio.coroutine
     def handle_get(self):

@@ -28,6 +28,14 @@ class ValueNumberType():
             self.step = data["step"]
             self.unit = data["unit"]
 
+    def __getitem__(self, item):
+        return {
+            'min': self.min,
+            'max': self.max,
+            'step': self.step,
+            'unit': self.unit
+        }[item]
+
 
 class ValueSetType():
     elements = []
@@ -61,6 +69,7 @@ class ValueStatus(enum.Enum):
 
 class Value(model.Model):
     _bind = False
+    _index = 0
 
     def __init__(self, parent, endpoint_id=None, cluster_id=None, load=None):
         self._parent = parent
@@ -68,7 +77,8 @@ class Value(model.Model):
 
         self.attr = {
             "endpoint_id": endpoint_id,
-            "cluster_id": cluster_id
+            "cluster_id": cluster_id,
+            "index": self._index
         }
 
         if load is None:
@@ -103,6 +113,10 @@ class Value(model.Model):
     @property
     def cluster_id(self):
         return self.attr["cluster_id"]
+
+    @property
+    def index(self):
+        return self.attr["index"]
 
     def _parse(self):
         self.data["permission"] = ValuePermission(self.data["permission"])
@@ -197,4 +211,4 @@ class Value(model.Model):
                 self.delayed_report(0, self._attribute, v[0][self._attribute])
                 return True
 
-        return False
+        return False  # pragma: no cover

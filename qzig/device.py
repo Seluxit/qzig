@@ -1,11 +1,29 @@
 import asyncio
 import logging
+import enum
 
 import qzig.model as model
 import qzig.value as value
 import qzig.values as values
 
 LOGGER = logging.getLogger(__name__)
+
+
+class PowerSource(enum.Enum):
+    UNKNOWN = 0x00
+    SINGLE_PHASE_MAINS = 0x01
+    THREE_PHASE_MAINS = 0x02
+    BATTERY = 0x03
+    DC_SOURCE = 0x04
+    EMERGENCY_MAINS_CONSTANTLY_POWERED = 0x05
+    EMERGENCY_MAINS_AND_TRANSFER_SWITCH = 0x06
+    UNKNOWN_BATTERY_BACKED = 0x80
+    SINGLE_PHASE_MAINS_BATTERY_BACKED = 0x81
+    THREE_PHASE_MAINS_BATTERY_BACKED = 0x82
+    BATTERY_BATTERY_BACKED = 0x83
+    DC_SOURCE_BATTERY_BACKED = 0x84
+    EMERGENCY_MAINS_CONSTANTLY_POWERED_BATTERY_BACKED = 0x85
+    EMERGENCY_MAINS_AND_TRANSFER_SWITCH_BATTERY_BACKED = 0x86
 
 
 class Device(model.Model):
@@ -39,19 +57,25 @@ class Device(model.Model):
     def create_child(self, **args):
         if "load" in args and "attr" in args["load"]:
             cid = args["load"]["attr"]["cluster_id"]
-            c = values.get_value_class(cid)
+            cls = values.get_value_class(cid)
         elif "cluster_id" in args:
             cid = args["cluster_id"]
-            c = values.get_value_class(cid)
+            cls = values.get_value_class(cid)
 
-        if c is None:
-            val = value.Value(self, **args)
+        vals = []
+        if cls is None:
+            vals.append(value.Value(self, **args))
         else:
-            val = c(self, **args)
+            if not isinstance(cls, list):
+                cls = [cls]
+            for c in cls:
+                vals.append(c(self, **args))
 
-        if "endpoint_id" in args and args["endpoint_id"] != 1:
-            val.data["name"] = val.data["name"] + " " + str(args["endpoint_id"])
-        return val
+        for val in vals:
+            if "endpoint_id" in args and args["endpoint_id"] != 1:
+                val.data["name"] = val.data["name"] + " " + str(args["endpoint_id"])
+
+        return vals
 
     @property
     def ieee(self):
@@ -71,34 +95,42 @@ class Device(model.Model):
 
             for c_id in endpoint.in_clusters:
                 cluster = endpoint.in_clusters[c_id]
-                val = self.add_value(e_id, c_id)
-                yield from val.parse_cluster(endpoint, cluster)
+                yield from self._handle_cluster(endpoint, e_id, c_id, cluster)
 
             for c_id in endpoint.out_clusters:
                 cluster = endpoint.out_clusters[c_id]
-                val = self.add_value(e_id, c_id)
-                yield from val.parse_cluster(endpoint, cluster)
+                yield from self._handle_cluster(endpoint, e_id, c_id, cluster)
 
         dev.zdo.add_listener(self)
 
         self.save()
 
-    def add_value(self, endpoint_id, cluster_id):
-        val = self.get_value(endpoint_id, cluster_id)
-        if val is None:
-            val = self.create_child(endpoint_id=endpoint_id, cluster_id=cluster_id)
-            self._children.append(val)
-        else:
-            val._parent = self
-        return val
+    @asyncio.coroutine
+    def _handle_cluster(self, endpoint, e_id, c_id, cluster):
+        val = self.add_value(e_id, c_id)
+        for v in val:
+            yield from v.parse_cluster(endpoint, cluster)
 
-    def get_value(self, endpoint, cluster):
+    def add_value(self, endpoint_id, cluster_id):
+        values = []
+        real = self.create_child(endpoint_id=endpoint_id, cluster_id=cluster_id)
+        for r in real:
+            val = self.get_value(endpoint_id, cluster_id, r.index)
+            if val is None:
+                val = r
+            val._parent = self
+            values.append(val)
+            self._children.append(val)
+
+        return values
+
+    def get_value(self, endpoint, cluster, index=0):
         try:
-            value = next(v for v in self._children
-                         if str(v.endpoint_id) == str(endpoint) and str(v.cluster_id) == str(cluster))
+            val = next(v for v in self._children
+                       if str(v.endpoint_id) == str(endpoint) and str(v.cluster_id) == str(cluster) and str(v.index) == str(index))
         except StopIteration:
-            value = None
-        return value
+            return None
+        return val
 
     @asyncio.coroutine
     def read_device_info(self):
@@ -108,29 +140,25 @@ class Device(model.Model):
 
             endp = self._dev.endpoints[e_id]
             if 0 not in endp.in_clusters:
-                LOGGER.error("Device %s do not have cluster 0 on endpoint 1",
-                             str(self._dev.ieee))
+                LOGGER.error("Device %s do not have cluster 0 on endpoint %s",
+                             str(self._dev.ieee), e_id)
                 continue
             cluster = endp.in_clusters[0]
 
             LOGGER.debug("Reading attributes from device %s", str(self._dev.ieee))
-            try:
-                v = yield from cluster.read_attributes([0, 1, 2, 3, 4, 5])
-            except:  # pragma: no cover
-                LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
-                return
-            self._handle_attributes_reply(v)
-            try:
-                v = yield from cluster.read_attributes([10])
-            except:  # pragma: no cover
-                LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
-                return
-            self._handle_attributes_reply(v)
+            for attr in [[0, 1, 2, 3, 4, 5, 7], [10]]:
+                try:
+                    v = yield from cluster.read_attributes(attr)
+                except:  # pragma: no cover
+                    LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
+                    return
+                self._handle_attributes_reply(v)
 
     def _handle_attributes_reply(self, attr):
         if attr[1]:
-            LOGGER.error("Failed to get attributes from device (%s)", attr[1])
+            LOGGER.error("Failed to get attributes (%s) from device %s", attr[1], self._dev.ieee)
         if attr[0]:
+            LOGGER.debug("Got attributes (%s) from device %d", attr[0], self._dev.ieee)
             self._parse_attributes(attr[0])
 
     def _parse_attributes(self, attr):
@@ -143,6 +171,8 @@ class Device(model.Model):
             elif t == 5:
                 self.data["product"] = attr[t].decode()
                 self.data["name"] = self.data["product"]
+            elif t == 7:
+                self.data["communication"] = PowerSource(attr[7]).name
             elif t == 10:
                 self.data["serial"] = attr[t].decode()
 
