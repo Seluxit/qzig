@@ -64,7 +64,8 @@ class State(model.Model):
         return tmp
 
     def zdo_command(self, *args):
-        LOGGER.debug(args)
+        pass
+        # LOGGER.debug("ZDO command: %r", args)
 
     def attribute_updated(self, attribute, data):
         data = self._parent.handle_report(attribute, data)

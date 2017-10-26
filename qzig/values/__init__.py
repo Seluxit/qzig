@@ -2,7 +2,7 @@ import bellows.zigbee.zcl.clusters.general as general_clusters
 import bellows.zigbee.zcl.clusters.measurement as measurement_clusters
 import bellows.zigbee.zcl.clusters.homeautomation as homeautomation_clusters
 
-from qzig.values import onoff, identify, temperature, humidity, diagnostics, ota, kaercher
+from qzig.values import onoff, identify, temperature, humidity, diagnostics, ota, power, kaercher
 
 
 def get_value_class(cluster_id):
@@ -15,8 +15,12 @@ def get_value_class(cluster_id):
     elif cluster_id == measurement_clusters.RelativeHumidity.cluster_id:
         return humidity.Humidity
     elif cluster_id == homeautomation_clusters.Diagnostic.cluster_id:
-        return diagnostics.Diagnostics
+        return [diagnostics.DiagnosticsRssi, diagnostics.DiagnosticsLinkQuality]
     elif cluster_id == general_clusters.Ota.cluster_id:
         return ota.Ota
-    elif cluster_id == 0xC001:
+    elif cluster_id == general_clusters.PowerConfiguration.cluster_id:
+        return power.PowerConfiguration
+    elif cluster_id == kaercher.FallbackEnable.cluster_id:
+        return [kaercher.FallbackEnable, kaercher.FallbackOnline]
+    elif cluster_id == kaercher.DeviceState.cluster_id:
         return kaercher.DeviceState

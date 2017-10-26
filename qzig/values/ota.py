@@ -24,22 +24,6 @@ class Ota(value.Value):
         }
         self.data["string"].max = 50
 
-    @asyncio.coroutine
-    def handle_get(self):
-        try:
-            v = yield from self._cluster.read_attributes([6])
-            if 6 not in v[0]:
-                return "Failed to read value from device"  # pragma: no cover
-            else:
-                self.delayed_report(0, 6, v[0][6])
-                return True
-        except:  # pragma: no cover
-            return "Failed to read value from device"
-
-    def handle_report(self, attribute, data):
-        if attribute == 6:
-            return int(data)
-
     def handle_command(self, aps_frame, tsn, command_id, args):
         if command_id == 0x01:
             self.handle_query_next_image(*args)
@@ -49,11 +33,20 @@ class Ota(value.Value):
             self.handle_update_end(*args)
 
     def handle_query_next_image(self, control, manufacturer_id, image_type, version, *args):
-        str = "Query Next Image Request - Control %d Manufactor Code %d Image Type %d Version %d" % (control, manufacturer_id, image_type, version)
+        info = "Query Next Image Request - Control %d Manufactor Code %d Image Type %d Version %d" % (control, manufacturer_id, image_type, version)
         if control == 1:
-            str += " HW %d" % args[0]
+            info += " HW %d" % args[0]
 
-        LOGGER.debug(str)
+        LOGGER.debug(info)
+
+        # Set the product type from OTA
+        self._parent.data["product"] = str(image_type)
+        self._parent.data["version"] = "{0:02}.{1:02}.{2:02}".format(version >> 16 & 0x000000FF,
+                                                                     version >> 8 & 0x000000FF,
+                                                                     version >> 0 & 0x000000FF)
+        self._parent.save()
+        self._parent.send_put("", self._parent.get_raw_data())
+        LOGGER.debug("Updating device product to %d", image_type)
 
         filename = "ota/%d-%d-%d.upgrade" % (manufacturer_id, image_type, version)
 

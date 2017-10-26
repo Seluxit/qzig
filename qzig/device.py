@@ -58,6 +58,11 @@ class Device(model.Model):
         if "load" in args and "attr" in args["load"]:
             cid = args["load"]["attr"]["cluster_id"]
             cls = values.get_value_class(cid)
+            if isinstance(cls, list) and len(cls) > 1:
+                for c in cls:
+                    if c._index == args["load"]["attr"]["index"]:
+                        cls = c
+                        break
         elif "cluster_id" in args:
             cid = args["cluster_id"]
             cls = values.get_value_class(cid)
@@ -110,6 +115,10 @@ class Device(model.Model):
         val = self.add_value(e_id, c_id)
         for v in val:
             yield from v.parse_cluster(endpoint, cluster)
+            try:
+                LOGGER.debug("Adding value %s", v.data["name"])
+            except Exception:
+                LOGGER.debug("No value handler for %d", v.cluster_id)
 
     def add_value(self, endpoint_id, cluster_id):
         values = []
@@ -156,9 +165,9 @@ class Device(model.Model):
 
     def _handle_attributes_reply(self, attr):
         if attr[1]:
-            LOGGER.error("Failed to get attributes (%s) from device %s", attr[1], self._dev.ieee)
+            LOGGER.error("Failed to get attributes (%s) from device %s", attr[1], str(self._dev.ieee))
         if attr[0]:
-            LOGGER.debug("Got attributes (%s) from device %d", attr[0], self._dev.ieee)
+            LOGGER.debug("Got attributes (%s) from device %s", attr[0], str(self._dev.ieee))
             self._parse_attributes(attr[0])
 
     def _parse_attributes(self, attr):

@@ -28,7 +28,7 @@ class ValueNumberType():
             self.step = data["step"]
             self.unit = data["unit"]
 
-    def __getitem__(self, item):
+    def __getitem__(self, item):  # pragma: no cover
         return {
             'min': self.min,
             'max': self.max,
@@ -212,3 +212,9 @@ class Value(model.Model):
                 return True
 
         return False  # pragma: no cover
+
+    def __str__(self):  # pragma: no cover
+        attr = None
+        if hasattr(self, '_attribute'):
+            attr = self._attribute
+        return "Value [\n\tIndex: {0}\n\tBind: {1}\n\tAttribute: {4}\n\tAttr: {2}\n\tData: {3}\n]".format(self._index, self._bind, self.attr, self.data, attr)
