@@ -7,6 +7,7 @@ import bellows.zigbee.zcl.clusters.homeautomation as homeautomation_clusters
 
 from qzig.values import kaercher
 
+
 def test_zigbee_attribute_update_callback(app):
     devices = util._get_device()
     util._startup(app, devices)
@@ -313,6 +314,30 @@ def test_zigbee_kaercher_update(app):
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_zigbee_kaercher_status_update(app):
+    devices = util._get_device(kaercher.DeviceState.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[kaercher.DeviceState.cluster_id]
+
+    assert cluster._cb is not None
+
+    for c in cluster._cb:
+        c.attribute_updated(0x0001, 1)
+        c.attribute_updated(0x0001, 0)
+        c.attribute_updated(0x0100, 1)
+        c.attribute_updated(0x0100, 2)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    print(app._rpc._transport.write.call_args[0][0].decode())
+    assert '"OTA is requested every 24 hours"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_zigbee_kaercher_fallback_update(app):

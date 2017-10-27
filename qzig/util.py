@@ -2,6 +2,7 @@ import json
 
 import qzig.value as value
 import qzig.state as state
+import qzig.status as status
 
 
 class QZigEncoder(json.JSONEncoder):
@@ -18,6 +19,10 @@ class QZigEncoder(json.JSONEncoder):
             return obj.__dict__
         if type(obj) is value.ValueStringType:
             return obj.__dict__
+        if type(obj) is status.StatusType:
+            return obj.value
+        if type(obj) is status.StatusLevel:
+            return obj.value
         # if type(obj) is value.ValueSetType:
         #    return obj.__dict__
         # if type(obj) is value.ValueBlobType:

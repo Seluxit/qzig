@@ -3,6 +3,7 @@ import logging
 import enum
 
 import qzig.model as model
+import qzig.status as status
 import qzig.value as value
 import qzig.values as values
 
@@ -40,6 +41,7 @@ class Device(model.Model):
             "protocol": "ZigBee",
             "communication": "",
             "included": "1",
+            "status": [],
             "value": []
         }
         self.attr = {
@@ -155,7 +157,7 @@ class Device(model.Model):
             cluster = endp.in_clusters[0]
 
             LOGGER.debug("Reading attributes from device %s", str(self._dev.ieee))
-            for attr in [[0, 1, 2, 3, 4, 5, 7], [10]]:
+            for attr in [[0, 1, 2, 3, 4], [5, 7, 10]]:
                 try:
                     v = yield from cluster.read_attributes(attr)
                 except:  # pragma: no cover
@@ -178,8 +180,8 @@ class Device(model.Model):
             elif t == 4:
                 self.data["manufacturer"] = attr[t].decode()
             elif t == 5:
-                self.data["product"] = attr[t].decode()
-                self.data["name"] = self.data["product"]
+                self.data["serial"] = attr[t].decode()
+                self.data["product"] = self.data["serial"]
             elif t == 7:
                 self.data["communication"] = PowerSource(attr[7]).name
             elif t == 10:
@@ -187,6 +189,16 @@ class Device(model.Model):
 
         if len(version):
             self.data["version"] = '.'.join(map(str, version))
+
+    def update_name(self):
+        self.data["name"] = self.data["manufacturer"]
+        if(len(self.data["product"])):
+            self.data["name"] += " Product " + self.data["product"]
+
+    def add_status(self, type, level, message):
+        stat = status.Status(self, type, level, message)
+        self.data["status"].insert(0, stat)
+        stat.send_post("", stat.get_data())
 
     def get_raw_data(self):
         tmp = self.data
