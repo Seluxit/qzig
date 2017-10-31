@@ -69,6 +69,14 @@ class Network(model.Model):
             LOGGER.error("Failed to find device to remove")
             return
 
+        for d in self._children:
+            if str(d.ieee) == str(dev.ieee):
+                try:
+                    self._children.remove(d)
+                except ValueError:
+                    LOGGER.error("Failed to remove device from children")
+                break
+
         d._remove_files()
         d.send_delete()
 

@@ -2,12 +2,41 @@ import logging
 
 import qzig.value as value
 import qzig.status as status
+import bellows.types as t
+from bellows.zigbee.zcl import Cluster
 
 LOGGER = logging.getLogger(__name__)
 
 
-class DeviceState(value.Value):
+class KaercherFallback(Cluster):
+    cluster_id = 0xC000
+    name = "Kärcher Fallback"
+    ep_attribute = 'kaercher_fallback'
+    attributes = {
+        0x0000: ('enable_flag', t.Bool),
+        0x0001: ('online_flag', t.Bool),
+        0x0002: ('start_time', t.uint16_t),
+        0x0003: ('duration', t.uint8_t),
+        0x0004: ('interval', t.uint8_t),
+    }
+    server_commands = {}
+    client_commands = {}
+
+
+class KaercherDeviceState(Cluster):
     cluster_id = 0xC001
+    name = "Kärcher Device State"
+    ep_attribute = 'kaercher_device_state'
+    attributes = {
+        0x0000: ('device_state', t.uint16_t),
+        0x0001: ('ota_update_request', t.Bool),
+        0x0002: ('valve_error', t.uint8_t),
+    }
+    server_commands = {}
+    client_commands = {}
+
+
+class DeviceState(value.Value):
     _bind = True
     _attribute = 0
 
@@ -44,7 +73,6 @@ class DeviceState(value.Value):
 
 
 class FallbackEnable(value.Value):
-    cluster_id = 0xC000
     _attribute = 0
     _index = 0
 

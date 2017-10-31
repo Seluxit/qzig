@@ -20,7 +20,7 @@ def get_value_class(cluster_id):
         return ota.Ota
     elif cluster_id == general_clusters.PowerConfiguration.cluster_id:
         return power.PowerConfiguration
-    elif cluster_id == kaercher.FallbackEnable.cluster_id:
+    elif cluster_id == kaercher.KaercherFallback.cluster_id:
         return [kaercher.FallbackEnable, kaercher.FallbackOnline, kaercher.FallbackStartTime, kaercher.FallbackDuration, kaercher.FallbackInterval]
-    elif cluster_id == kaercher.DeviceState.cluster_id:
+    elif cluster_id == kaercher.KaercherDeviceState.cluster_id:
         return kaercher.DeviceState

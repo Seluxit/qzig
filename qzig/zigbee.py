@@ -75,3 +75,6 @@ class ZigBee():
 
     def devices(self):
         return self.controller.devices.items()
+
+    def ieees(self):
+        return self.controller.devices.keys()

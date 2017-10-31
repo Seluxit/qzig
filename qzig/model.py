@@ -138,7 +138,10 @@ class Model():
         return None
 
     def _remove_files(self):
-        shutil.rmtree(self.path)
+        try:
+            shutil.rmtree(self.path)
+        except FileNotFoundError:
+            pass
 
     @asyncio.coroutine
     def bind(self, endpoint_id, cluster_id):

@@ -41,7 +41,6 @@ class Device(model.Model):
             "protocol": "ZigBee",
             "communication": "",
             "included": "1",
-            "status": [],
             "value": []
         }
         self.attr = {
@@ -70,9 +69,7 @@ class Device(model.Model):
             cls = values.get_value_class(cid)
 
         vals = []
-        if cls is None:
-            vals.append(value.Value(self, **args))
-        else:
+        if cls is not None:
             if not isinstance(cls, list):
                 cls = [cls]
             for c in cls:
@@ -118,9 +115,9 @@ class Device(model.Model):
         for v in val:
             yield from v.parse_cluster(endpoint, cluster)
             try:
-                LOGGER.debug("Adding value %s", v.data["name"])
-            except Exception:
-                LOGGER.debug("No value handler for %d", v.cluster_id)
+                LOGGER.debug("Adding %s value", v.data["name"])
+            except TypeError:
+                LOGGER.debug("No value handler for %d", c_id)
 
     def add_value(self, endpoint_id, cluster_id):
         values = []
@@ -129,9 +126,9 @@ class Device(model.Model):
             val = self.get_value(endpoint_id, cluster_id, r.index)
             if val is None:
                 val = r
+                self._children.append(val)
             val._parent = self
             values.append(val)
-            self._children.append(val)
 
         return values
 
@@ -164,6 +161,13 @@ class Device(model.Model):
                     LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
                     return
                 self._handle_attributes_reply(v)
+
+            try:
+                v = yield from cluster.read_attributes([1,3], manufacturer=0x122C)
+            except:  # pragma: no cover
+                LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
+                return
+            self._handle_attributes_reply(v)
 
     def _handle_attributes_reply(self, attr):
         if attr[1]:

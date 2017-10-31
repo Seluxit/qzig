@@ -33,10 +33,9 @@ class JsonRPC(asyncio.Protocol):
         """Callback when there is data received from the socket"""
 
         data = data.decode()
-        LOGGER.debug("recv: %s", data)
-
         rpc = json.loads(data)
         if "method" in rpc:
+            LOGGER.debug("recv: %s", data)
             self._handle_request(rpc)
         else:
             self._handle_result(rpc)
@@ -104,11 +103,11 @@ class JsonRPC(asyncio.Protocol):
                 self._send_error(item["id"], str(result))
 
     def _send(self, rpc, id):
-        LOGGER.debug(json.dumps(rpc,
-                                cls=qzig.util.QZigEncoder,
-                                sort_keys=True,
-                                indent=4,
-                                separators=(',', ': ')))
+        # LOGGER.debug(json.dumps(rpc,
+        #                        cls=qzig.util.QZigEncoder,
+        #                        sort_keys=True,
+        #                        indent=4,
+        #                        separators=(',', ': ')))
         rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
         fut = asyncio.Future()
         self._sendq.put_nowait((rpc, id, fut))

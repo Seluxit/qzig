@@ -297,11 +297,11 @@ def test_zigbee_power_update(app):
 
 
 def test_zigbee_kaercher_update(app):
-    devices = util._get_device(kaercher.DeviceState.cluster_id)
+    devices = util._get_device(kaercher.KaercherDeviceState.cluster_id)
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
-    cluster = dev.endpoints[1].in_clusters[kaercher.DeviceState.cluster_id]
+    cluster = dev.endpoints[1].in_clusters[kaercher.KaercherDeviceState.cluster_id]
 
     assert cluster._cb is not None
 
@@ -317,11 +317,11 @@ def test_zigbee_kaercher_update(app):
 
 
 def test_zigbee_kaercher_status_update(app):
-    devices = util._get_device(kaercher.DeviceState.cluster_id)
+    devices = util._get_device(kaercher.KaercherDeviceState.cluster_id)
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
-    cluster = dev.endpoints[1].in_clusters[kaercher.DeviceState.cluster_id]
+    cluster = dev.endpoints[1].in_clusters[kaercher.KaercherDeviceState.cluster_id]
 
     assert cluster._cb is not None
 
@@ -341,11 +341,11 @@ def test_zigbee_kaercher_status_update(app):
 
 
 def test_zigbee_kaercher_fallback_update(app):
-    devices = util._get_device(kaercher.FallbackEnable.cluster_id)
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
     util._startup(app, devices)
 
     dev = next(iter(devices.values()))
-    cluster = dev.endpoints[1].in_clusters[kaercher.FallbackEnable.cluster_id]
+    cluster = dev.endpoints[1].in_clusters[kaercher.KaercherFallback.cluster_id]
 
     assert cluster._cb is not None
 

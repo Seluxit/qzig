@@ -217,4 +217,5 @@ class Value(model.Model):
         attr = None
         if hasattr(self, '_attribute'):
             attr = self._attribute
-        return "Value [\n\tIndex: {0}\n\tBind: {1}\n\tAttribute: {4}\n\tAttr: {2}\n\tData: {3}\n]".format(self._index, self._bind, self.attr, self.data, attr)
+        txt = "Value [\n\tIndex: {0}, Bind: {1} ({5}), Attribute: {4}\n\tAttr: {2}\n\tData: {3}\n]"
+        return txt.format(self._index, self._bind, self.attr, self.data, attr, self._should_bind)
