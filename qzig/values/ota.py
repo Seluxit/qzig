@@ -42,15 +42,6 @@ class Ota(value.Value):
         version_string = "{0:02}.{1:02}.{2:02}".format(version >> 16 & 0x000000FF,
                                                        version >> 8 & 0x000000FF,
                                                        version >> 0 & 0x000000FF)
-        # Set the product type from OTA
-        if(self._parent.data["product"] != str(image_type) or
-           self._parent.data["version"] != version_string):
-            self._parent.data["product"] = str(image_type)
-            self._parent.data["version"] = version_string
-            self._parent.update_name()
-            self._parent.save()
-            self._parent.send_put("", self._parent.get_raw_data())
-            LOGGER.debug("Updating device product to %d", image_type)
 
         filename = "ota/%d-%d-%d.upgrade" % (manufacturer_id, image_type, version)
 
