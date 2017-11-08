@@ -62,7 +62,6 @@ class Network(model.Model):
         self._children.append(new_gw)
         return new_gw
 
-    @asyncio.coroutine
     def remove_device(self, dev):
         d = self.get_device(str(dev.ieee))
         if d is None:  # pragma: no cover

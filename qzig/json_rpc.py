@@ -65,17 +65,19 @@ class JsonRPC(asyncio.Protocol):
             else:
                 self._pending = (id, fut)
                 self._transport.write(data.encode())
-                yield from self._pending[1]
+                if self._pending[1] is not None:
+                    yield from self._pending[1]
 
     def _handle_result(self, rpc):
         pending, self._pending = self._pending, (-1, None)
-
         if "error" in rpc:
             LOGGER.error(rpc["error"])
             res = rpc["error"]
         else:
             res = rpc["result"]
 
+        if pending[1] is None:
+            return
         pending[1].set_result(res)
 
     def _handle_request(self, rpc):
@@ -102,14 +104,13 @@ class JsonRPC(asyncio.Protocol):
                 LOGGER.error(result)
                 self._send_error(item["id"], str(result))
 
-    def _send(self, rpc, id):
-        # LOGGER.debug(json.dumps(rpc,
-        #                        cls=qzig.util.QZigEncoder,
-        #                        sort_keys=True,
-        #                        indent=4,
-        #                        separators=(',', ': ')))
+    def _send(self, rpc, id, fut=None):
+        LOGGER.debug(json.dumps(rpc,
+                                cls=qzig.util.QZigEncoder,
+                                sort_keys=True,
+                                indent=4,
+                                separators=(',', ': ')))
         rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
-        fut = asyncio.Future()
         self._sendq.put_nowait((rpc, id, fut))
         return fut
 
@@ -132,7 +133,7 @@ class JsonRPC(asyncio.Protocol):
         }
         self._send(rpc, -1)
 
-    def _rpc(self, method, url, data=None):
+    def _rpc(self, method, url, data=None, fut=None):
         id, self._id = self._id, self._id + 1
         rpc = {
             "jsonrpc": "2.0",
@@ -145,11 +146,12 @@ class JsonRPC(asyncio.Protocol):
         if data is not None:
             rpc["params"]["data"] = data
 
-        return self._send(rpc, id)
+        return self._send(rpc, id, fut)
 
     @asyncio.coroutine
     def get(self, url):
-        data = yield from self._rpc("GET", url)
+        fut = asyncio.Future()
+        data = yield from self._rpc("GET", url, fut=fut)
         return data
 
     def post(self, url, data):

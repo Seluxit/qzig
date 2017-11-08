@@ -109,6 +109,10 @@ class Model():
                     else:
                         self._children.append(c)
                         c.load_children()
+        self._children_loaded()
+
+    def _children_loaded(self):
+        pass
 
     def send_put(self, url, data):
         url = "/" + self.name + "/" + self.id + url

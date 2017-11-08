@@ -120,8 +120,6 @@ def run_loop():
 @asyncio.coroutine
 def _delayed_reply(app, server_devices):
     yield from asyncio.sleep(0.01)
-    app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"result":true}')
-    yield from asyncio.sleep(0.01)
     data = {
         "type": "urn:seluxit:xml:bastard:device-1.1",
         ":type": "urn:seluxit:xml:bastard:idlist-1.0",
@@ -133,6 +131,8 @@ def _delayed_reply(app, server_devices):
         "result": data
     }
     app._rpc.data_received(json.dumps(rpc).encode())
+    yield from asyncio.sleep(0.01)
+    app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"result":true}')
 
 
 def _startup(app, devs={}, server_devices=[]):
