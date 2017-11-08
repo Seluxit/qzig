@@ -95,8 +95,14 @@ class Application():
                         break
                 if not found:
                     remove.append(dev)
-        for dev in remove:
-            self._network.remove_device(dev)
+
+        if len(remove) != 0:
+            print(self._zb.ieees())
+            for dev in remove:
+                print(dev.ieee)
+            assert False
+        #for dev in remove:
+        #    self._network.remove_device(dev)
 
     def _load_devices(self):
         for ieee, dev in self._zb.devices():
@@ -164,8 +170,7 @@ class Application():
 
     def device_removed(self, device):
         LOGGER.debug("Device removed %s", str(device.ieee))
-        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
-        async_fun(self._network.remove_device(device))
+        self._network.remove_device(device)
 
     def device_joined(self, device):
         if self._installcode is None:

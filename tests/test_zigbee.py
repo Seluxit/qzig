@@ -335,9 +335,9 @@ def test_zigbee_kaercher_status_update(app):
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 1)
+    assert app._rpc._transport.write.call_count == (count + 4)
     print(app._rpc._transport.write.call_args[0][0].decode())
-    assert '"OTA is requested every 24 hours"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"Valve not connected"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_zigbee_kaercher_fallback_update(app):

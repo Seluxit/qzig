@@ -145,14 +145,19 @@ def _startup(app, devs={}, server_devices=[]):
 
     assert app._network is not None
     if len(server_devices) == 0:
-        assert app._rpc._transport.write.call_count == 2
+        if len(devs) == 0:
+            assert app._rpc._transport.write.call_count == 2
+        #else:
+        #    assert app._rpc._transport.write.call_count == 3
         assert app._rpc._pending[0] == -1
+    #else:
+    #    assert app._rpc._transport.write.call_count == 3
 
 
 def _get_device(cluster=6):
     endpoint = MockEndpoint(1)
     endpoint.in_clusters[cluster] = MockCluster(cluster)
-    device = MockDevice("11:22:33", 1)
+    device = MockDevice("device1", 1)
     device.endpoints[1] = endpoint
     return {"device1": device}
 

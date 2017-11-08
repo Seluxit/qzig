@@ -265,7 +265,7 @@ def test_gateway_permit(app):
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 2)
+    assert app._rpc._transport.write.call_count == (count + 3)
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
 
 

@@ -15,7 +15,7 @@ def test_init(app, tmpdir, store):
 
 def test_only_zigbee_devices(app, store):
     app._gateway = None
-    device = MockDevice("11:22:33", 1)
+    device = MockDevice("device1", 1)
     devices = {"device1": device}
     util._startup(app, devices)
 
@@ -26,7 +26,7 @@ def test_only_zigbee_devices(app, store):
 def test_only_zigbee_device_and_endpoint(app, store):
     app._gateway = None
     endpoint = MockEndpoint(1)
-    device = MockDevice("11:22:33", 1)
+    device = MockDevice("device1", 1)
     device.endpoints[1] = endpoint
     devices = {"device1": device}
     util._startup(app, devices)
@@ -58,7 +58,7 @@ def test_zigbee_device_and_endpoint_and_many_cluster(app):
     for c in range(100, 200):
         endpoint.out_clusters[c] = MockCluster(c)
     endpoint.in_clusters[0x0402] = MockCluster(0x0402)
-    device = MockDevice("11:22:33", 1)
+    device = MockDevice("device1", 1)
     device.endpoints[1] = endpoint
     devices = {"device1": device}
     util._startup(app, devices)
