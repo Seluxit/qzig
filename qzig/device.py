@@ -5,7 +5,6 @@ import enum
 import bellows.zigbee.zcl.clusters.general as general_clusters
 import qzig.model as model
 import qzig.status as status
-import qzig.value as value
 import qzig.values as values
 
 LOGGER = logging.getLogger(__name__)
@@ -42,7 +41,7 @@ class Device(model.Model):
             "protocol": "ZigBee",
             "communication": "",
             "included": "1",
-            #"status": [],
+            # "status": [],
             "value": []
         }
         self.attr = {
@@ -218,7 +217,7 @@ class Device(model.Model):
     def add_status(self, type, level, message):
         LOGGER.debug("%s | New %s status: %s", level, type, message)
         stat = status.Status(self, type, level, message)
-        if "status"  not in self.data:
+        if "status" not in self.data:
             self.data["status"] = []
         self.data["status"].insert(0, stat)
 

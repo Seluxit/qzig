@@ -87,11 +87,11 @@ class Application():
 
         remove = []
         for dev in self._network._children:
-            found=False
+            found = False
             if dev.ieee != "gateway":
                 for ie in self._zb.ieees():
                     if str(dev.ieee) == str(ie):
-                        found=True
+                        found = True
                         break
                 if not found:
                     remove.append(dev)

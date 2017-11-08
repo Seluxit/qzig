@@ -39,10 +39,6 @@ class Ota(value.Value):
 
         LOGGER.debug(info)
 
-        version_string = "{0:02}.{1:02}.{2:02}".format(version >> 16 & 0x000000FF,
-                                                       version >> 8 & 0x000000FF,
-                                                       version >> 0 & 0x000000FF)
-
         filename = "ota/%d-%d-%d.upgrade" % (manufacturer_id, image_type, version)
 
         try:
