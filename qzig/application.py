@@ -2,6 +2,7 @@ import sys
 import asyncio
 import logging
 
+import bellows.zigbee.util as util
 import qzig.zigbee as zigbee
 import qzig.json_rpc as json_rpc
 import qzig.network as network
@@ -16,6 +17,7 @@ class Application():
         self._dev = device
         self._network_id = network_id
         self._network = network.Network(self, network_id)
+        self._installcode = None
 
         self.ssl = options.get("ssl")
         self._baudrate = options.get("baudrate") or 115200
@@ -94,7 +96,7 @@ class Application():
                 if not found:
                     remove.append(dev)
         for dev in remove:
-            yield from self._network.remove_device(dev)
+            self._network.remove_device(dev)
 
     def _load_devices(self):
         for ieee, dev in self._zb.devices():
@@ -120,7 +122,16 @@ class Application():
 
     @asyncio.coroutine
     def permit_with_key(self, node, code, timeout):
-        v = yield from self._zb.controller.permit_with_key(node, code, timeout)
+        if node is None:
+            LOGGER.debug("Permit join, so that we can get the IEEE from the device")
+            if util.convert_install_code(code) is None:
+                raise Exception("Invalid install code")
+
+            self._installcode = code
+            self._permit_timeout = timeout
+            v = yield from self._zb.controller.permit(timeout)
+        else:
+            v = yield from self._zb.controller.permit_with_key(node, code, timeout)
         return v
 
     @asyncio.coroutine
@@ -157,12 +168,18 @@ class Application():
         async_fun(self._network.remove_device(device))
 
     def device_joined(self, device):
-        LOGGER.debug("Device joined %s", str(device.ieee))
-        gw = self._network.get_device("gateway")
-        val = gw.get_value(-1, -1)
-        if hasattr(val, "_report_fut"):
-            val._report_fut.cancel()  # pragma: no cover
-        val.delayed_report(0, 0, 0)
+        if self._installcode is None:
+            LOGGER.debug("Device joined %s", str(device.ieee))
+            gw = self._network.get_device("gateway")
+            val = gw.get_value(-1, -1)
+            if hasattr(val, "_report_fut"):
+                val._report_fut.cancel()  # pragma: no cover
+            val.delayed_report(0, 0, 0)
+        else:
+            LOGGER.debug("Device tried to join, setting install code")
+            async_fun = getattr(asyncio, "ensure_future", asyncio.async)
+            async_fun(self._zb.controller.permit_with_key(device.ieee, self._installcode, self._permit_timeout))
+            self._installcode = None
 
     def device_initialized(self, device):
         LOGGER.debug("Device initlized %s", str(device.ieee))

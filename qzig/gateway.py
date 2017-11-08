@@ -29,7 +29,17 @@ class Gateway(device.Device):
         }
         self.add_value(-1, -1)
         self.add_value(-2, -2)
+        self.add_value(-3, -3)
         self.save()
+
+    def _children_loaded(self):
+        if len(self._children) != 3:
+            self.add_value(-1, -1)
+            self.add_value(-2, -2)
+            self.add_value(-3, -3)
+            self.save()
+
+        print(self._children)
 
     def create_child(self, **args):
         id = -1
@@ -38,7 +48,9 @@ class Gateway(device.Device):
         else:
             id = args["cluster_id"]
 
-        if id == -2:
+        if id == -3:
+            return [NetworkInstallKey(self, **args)]
+        elif id == -2:
             return [NetworkJoinKey(self, **args)]
         else:
             return [NetworkPermit(self, **args)]
@@ -112,6 +124,41 @@ class NetworkJoinKey(value.Value):
         code = data[8:]
 
         v = yield from self.permit_with_key(node, code, 180)
+        LOGGER.debug(v)
+
+        return True
+
+
+class NetworkInstallKey(value.Value):
+    def _init(self):
+        self.data = {
+            ":type": "urn:seluxit:xml:bastard:value-1.1",
+            ":id": self.uuid,
+            "name": "Install Key",
+            "permission": value.ValuePermission.READ_WRITE,
+            "type": "Network Management",
+            "string": value.ValueStringType(),
+            "status": value.ValueStatus.OK,
+            "state": []
+        }
+        self.data["string"].encoding = "hexbinary"
+        self.data["string"].max = 18
+
+    def handle_report(self, attribute, data):  # pragma: no cover
+        return data
+
+    @asyncio.coroutine
+    def handle_control(self, data):
+        try:
+            data = bytearray.fromhex(data)
+        except Exception as e:
+            LOGGER.error(e)
+            return "Invalid hex data"
+
+        if len(data) < 10:
+            return "Install code has to be minimal 10 charaters, not %d" % len(data)
+
+        v = yield from self.permit_with_key(None, data, 180)
         LOGGER.debug(v)
 
         return True
