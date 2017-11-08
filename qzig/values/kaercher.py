@@ -9,7 +9,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class KaercherFallback(Cluster):
-    cluster_id = 0xC000
+    cluster_id = 0xFC00
     name = "Kärcher Fallback"
     ep_attribute = 'kaercher_fallback'
     attributes = {
@@ -24,7 +24,7 @@ class KaercherFallback(Cluster):
 
 
 class KaercherDeviceState(Cluster):
-    cluster_id = 0xC001
+    cluster_id = 0xFC01
     name = "Kärcher Device State"
     ep_attribute = 'kaercher_device_state'
     attributes = {
