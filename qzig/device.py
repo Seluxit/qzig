@@ -2,6 +2,7 @@ import asyncio
 import logging
 import enum
 
+import bellows.zigbee.zcl.clusters.general as general_clusters
 import qzig.model as model
 import qzig.status as status
 import qzig.value as value
@@ -41,6 +42,7 @@ class Device(model.Model):
             "protocol": "ZigBee",
             "communication": "",
             "included": "1",
+            #"status": [],
             "value": []
         }
         self.attr = {
@@ -147,11 +149,11 @@ class Device(model.Model):
                 continue
 
             endp = self._dev.endpoints[e_id]
-            if 0 not in endp.in_clusters:
-                LOGGER.error("Device %s do not have cluster 0 on endpoint %s",
+            if general_clusters.Basic.cluster_id not in endp.in_clusters:
+                LOGGER.error("Device %s do not have Basic cluster on endpoint %s",
                              str(self._dev.ieee), e_id)
                 continue
-            cluster = endp.in_clusters[0]
+            cluster = endp.in_clusters[general_clusters.Basic.cluster_id]
 
             LOGGER.debug("Reading attributes from device %s", str(self._dev.ieee))
             for attr in [[0, 1, 2, 3, 4], [5, 7, 10]]:
@@ -162,37 +164,51 @@ class Device(model.Model):
                     return
                 self._handle_attributes_reply(v)
 
-            try:
-                v = yield from cluster.read_attributes([1,3], manufacturer=0x122C)
-            except:  # pragma: no cover
-                LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
-                return
-            self._handle_attributes_reply(v)
+            if self.data["manufacturer"] == "Kaercher":
+                try:
+                    v = yield from cluster.read_attributes([0, 1, 2, 3, 4], manufacturer=0x122C)
+                except:  # pragma: no cover
+                    LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
+                    return
+                self._handle_attributes_reply(v, self._handle_kaercher_attributes)
 
-    def _handle_attributes_reply(self, attr):
+    def _handle_attributes_reply(self, attr, handler=None):
         if attr[1]:
             LOGGER.error("Failed to get attributes (%s) from device %s", attr[1], str(self._dev.ieee))
         if attr[0]:
             LOGGER.debug("Got attributes (%s) from device %s", attr[0], str(self._dev.ieee))
-            self._parse_attributes(attr[0])
+            if handler is None:
+                self._parse_attributes(attr[0])
+            else:
+                handler(attr[0])
 
     def _parse_attributes(self, attr):
         version = []
         for t in attr:
-            if t <= 3:
+            if t == 0:
+                self.data["protocol"] = "ZigBee " + str(attr[t])
+            elif t <= 3:
                 version.append(attr[t])
             elif t == 4:
                 self.data["manufacturer"] = attr[t].decode()
             elif t == 5:
-                self.data["serial"] = attr[t].decode()
-                self.data["product"] = self.data["serial"]
+                self.data["name"] = attr[t].decode()
+                self.data["product"] = self.data["name"]
             elif t == 7:
                 self.data["communication"] = PowerSource(attr[7]).name
             elif t == 10:
                 self.data["serial"] = attr[t].decode()
 
         if len(version):
-            self.data["version"] = '.'.join(map(str, version))
+            self.data["version"] = '-'.join(map(str, version))
+
+    def _handle_kaercher_attributes(self, attr):
+        if 1 in attr and 3 in attr:
+            self.data["version"] = attr[3].decode() + "-" + attr[1].decode()
+        if 2 in attr and 4 in attr:
+            self.data["serial"] = attr[4].decode() + "-" + attr[2].decode()
+        if 0 in attr:
+            self.data["product"] = str(attr[0])
 
     def update_name(self):
         self.data["name"] = self.data["manufacturer"]
@@ -200,9 +216,16 @@ class Device(model.Model):
             self.data["name"] += " Product " + self.data["product"]
 
     def add_status(self, type, level, message):
+        LOGGER.debug("%s | New %s status: %s", level, type, message)
         stat = status.Status(self, type, level, message)
+        if "status"  not in self.data:
+            self.data["status"] = []
         self.data["status"].insert(0, stat)
+
         stat.send_post("", stat.get_data())
+
+    def permit_duration(self, duration):
+        pass
 
     def get_raw_data(self):
         tmp = self.data
