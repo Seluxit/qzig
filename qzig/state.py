@@ -68,6 +68,8 @@ class State(model.Model):
         # LOGGER.debug("ZDO command: %r", args)
 
     def attribute_updated(self, attribute, data):
+        LOGGER.debug("Attribute %s change to %s on %s", attribute, data, self._parent.data["name"])
+
         data = self._parent.handle_report(attribute, data)
         if data is None:
             return
