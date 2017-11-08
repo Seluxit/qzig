@@ -14,7 +14,7 @@ class ControllerMock():
         self.devices = app_devices
         self._cb = None
         self.permit = mock.MagicMock()
-        self.permit_with_key = mock.MagicMock()
+        self._permit_with_key_count = 0
 
     @asyncio.coroutine
     def startup(self, opt):
@@ -32,6 +32,10 @@ class ControllerMock():
         devices = _get_device()
         dev = next(iter(devices.values()))
         self._cb.device_removed(dev)
+
+    @asyncio.coroutine
+    def permit_with_key(self, ieee, installcode, timeout):
+        self._permit_with_key_count += 1
 
 
 class MockDevice():
@@ -66,9 +70,11 @@ class MockCluster():
             return [{0: 0}, 0]
         else:
             if self.reply_count == 1:
-                return [{1: 0, 4: b'test', 5: b'test', 7: 3, 10: b'0'}, 0]
+                return [{0: 2, 1: 0, 4: b'Kaercher', 5: b'test', 7: 3, 10: b'0'}, 0]
             elif self.reply_count == 2:
                 return [0, 1]
+            elif self.reply_count == 3:
+                return [{0: 2, 1: b'test', 2: b'test', 3: b'test', 4: b'test'}, 0]
             else:
                 return None
 
@@ -145,13 +151,13 @@ def _startup(app, devs={}, server_devices=[]):
 
     assert app._network is not None
     if len(server_devices) == 0:
-        if len(devs) == 0:
+        if len(devs) == 0 or "device1" in devs:
             assert app._rpc._transport.write.call_count == 2
-        #else:
-        #    assert app._rpc._transport.write.call_count == 3
+        else:
+            assert app._rpc._transport.write.call_count == 3
         assert app._rpc._pending[0] == -1
-    #else:
-    #    assert app._rpc._transport.write.call_count == 3
+    else:
+        assert app._rpc._transport.write.call_count == 3
 
 
 def _get_device(cluster=6):

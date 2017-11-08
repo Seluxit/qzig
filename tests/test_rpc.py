@@ -323,6 +323,88 @@ def test_gateway_permit_with_key_short_hex(app):
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_gateway_permit_with_only_key(app):
+    util._startup(app)
+
+    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    assert s is not None
+
+    id = s.id
+    rpc = util._rpc_state(id, "11223344556677884AF7")
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+
+    devices = util._get_device()
+    dev = next(iter(devices.values()))
+    app._zb.controller._cb.device_joined(dev)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._zb.controller._permit_with_key_count == 1
+
+
+def test_gateway_permit_with_only_short_key(app):
+    util._startup(app)
+
+    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    assert s is not None
+
+    id = s.id
+    rpc = util._rpc_state(id, "1122334455667788")
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_gateway_permit_with_only_invalid_key(app):
+    util._startup(app)
+
+    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    assert s is not None
+
+    id = s.id
+    rpc = util._rpc_state(id, "1122334455667788JKJK")
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_gateway_permit_with_only_wrong_key(app):
+    util._startup(app)
+
+    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    assert s is not None
+
+    id = s.id
+    rpc = util._rpc_state(id, "11223344556677880000")
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_delete_device(app, store):
     app._gateway = None
     devices = util._get_device()

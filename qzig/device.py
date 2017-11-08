@@ -115,10 +115,7 @@ class Device(model.Model):
         val = self.add_value(e_id, c_id)
         for v in val:
             yield from v.parse_cluster(endpoint, cluster)
-            try:
-                LOGGER.debug("Adding %s value", v.data["name"])
-            except TypeError:
-                LOGGER.debug("No value handler for %d", c_id)
+            LOGGER.debug("Adding %s value", v.data["name"])
 
     def add_value(self, endpoint_id, cluster_id):
         values = []
@@ -208,11 +205,6 @@ class Device(model.Model):
             self.data["serial"] = attr[4].decode() + "-" + attr[2].decode()
         if 0 in attr:
             self.data["product"] = str(attr[0])
-
-    def update_name(self):
-        self.data["name"] = self.data["manufacturer"]
-        if(len(self.data["product"])):
-            self.data["name"] += " Product " + self.data["product"]
 
     def add_status(self, type, level, message):
         LOGGER.debug("%s | New %s status: %s", level, type, message)

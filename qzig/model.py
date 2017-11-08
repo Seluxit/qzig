@@ -62,9 +62,6 @@ class Model():
         return "<%s attr: %s>" % (self.name, self.attr)
 
     def save(self):
-        if self.data is None:
-            return
-
         if not os.path.exists(self.path):
             os.makedirs(self.path)
 
@@ -144,7 +141,7 @@ class Model():
     def _remove_files(self):
         try:
             shutil.rmtree(self.path)
-        except FileNotFoundError:
+        except FileNotFoundError:  # pragma: nocover
             pass
 
     @asyncio.coroutine

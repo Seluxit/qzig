@@ -72,7 +72,7 @@ class Network(model.Model):
             if str(d.ieee) == str(dev.ieee):
                 try:
                     self._children.remove(d)
-                except ValueError:
+                except ValueError:  # pragma: nocover
                     LOGGER.error("Failed to remove device from children")
                 break
 

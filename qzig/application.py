@@ -96,13 +96,8 @@ class Application():
                 if not found:
                     remove.append(dev)
 
-        if len(remove) != 0:
-            print(self._zb.ieees())
-            for dev in remove:
-                print(dev.ieee)
-            assert False
-        #for dev in remove:
-        #    self._network.remove_device(dev)
+        for dev in remove:
+            self._network.remove_device(dev)
 
     def _load_devices(self):
         for ieee, dev in self._zb.devices():

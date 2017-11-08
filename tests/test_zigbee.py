@@ -358,3 +358,17 @@ def test_zigbee_kaercher_fallback_update(app):
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_zigbee_permit_duration(app):
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    dev = app._network._children[0]
+    dev.permit_duration(1)
+
+    assert app._rpc._transport.write.call_count == count

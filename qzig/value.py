@@ -84,8 +84,6 @@ class Value(model.Model):
         if load is None:
             self._should_bind = True
             self._init()
-            if self.data is None:
-                return
             if self.data["permission"] == ValuePermission.READ_ONLY:
                 self.add_states([state.StateType.REPORT])
             elif self.data["permission"] == ValuePermission.WRITE_ONLY:
@@ -95,9 +93,6 @@ class Value(model.Model):
         else:
             self._should_bind = False
             self._load(load)
-
-    def _init(self):
-        self.data = None
 
     @property
     def name(self):
@@ -167,8 +162,6 @@ class Value(model.Model):
 
     def get_data(self):
         tmp = self.get_raw_data()
-        if tmp is None:
-            return tmp
         if len(self._children):
             tmp["state"] = []
         for s in self._children:
