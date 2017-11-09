@@ -64,7 +64,7 @@ class DeviceState(value.Value):
                 message = "OTA is not being requested"
             else:
                 message = "OTA is requested every 24 hours"
-            self._parent.add_status(status.StatusType.APPLICATION, status.StatusLevel.WARNING, message)
+            self._parent.add_status(status.StatusType.APPLICATION, status.StatusLevel.INFO, message)
         elif attribute == 0x0100:
             if data == 1:
                 self._parent.add_status(status.StatusType.APPLICATION, status.StatusLevel.ERROR, "Valve is blocked")
