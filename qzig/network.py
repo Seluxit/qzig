@@ -29,7 +29,7 @@ class Network(model.Model):
             try:
                 if args["load"]["attr"]["ieee"] == "gateway":
                     return self._parent._gateway(self, **args)
-            except:
+            except KeyError:
                 pass
 
         return device.Device(self, **args)
@@ -86,7 +86,7 @@ class Network(model.Model):
                     raw = json.load(f)
                     self.data = raw["data"]
                     self.attr = raw["attr"]
-        except:
+        except ValueError:
             LOGGER.exception("Failed to load network data")
 
         self.load_children()

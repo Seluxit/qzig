@@ -53,7 +53,7 @@ class Model():
             self._child_name = ""
             try:
                 self._child_name = str(self.create_child().name).lower()
-            except:
+            except AttributeError:
                 pass
 
         return self._child_name

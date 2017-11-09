@@ -90,7 +90,7 @@ class JsonRPC(asyncio.Protocol):
             if item is self.Terminator:
                 break  # pragma: no cover
             LOGGER.debug(item)
-            method = item["method"]
+            method = item["method"].lower()
             params = item["params"]
 
             try:

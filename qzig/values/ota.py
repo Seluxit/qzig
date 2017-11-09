@@ -66,7 +66,7 @@ class Ota(value.Value):
 
             LOGGER.debug("Sending OTA Image Block Response frame - Offset %s Size %s", offset, size)
             self.async_command(self, 'image_block_response', Status.SUCCESS, manufacturer_id, image_type, version, offset, data)
-        except:
+        except FileNotFoundError:
             LOGGER.error("Failed to load data from file %s", filename)
             self.async_command(self, 'image_block_response', Status.ABORT, 0, 0, 0, 0, 0)
 

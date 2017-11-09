@@ -3,6 +3,7 @@ import logging
 import enum
 
 import bellows.zigbee.zcl.clusters.general as general_clusters
+import bellows.zigbee.exceptions as zigbee_exp
 import qzig.model as model
 import qzig.status as status
 import qzig.values as values
@@ -155,7 +156,7 @@ class Device(model.Model):
             for attr in [[0, 1, 2, 3, 4], [5, 7, 10]]:
                 try:
                     v = yield from cluster.read_attributes(attr)
-                except:  # pragma: no cover
+                except zigbee_exp.DeliveryError:  # pragma: no cover
                     LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
                     return
                 self._handle_attributes_reply(v)
@@ -163,7 +164,7 @@ class Device(model.Model):
             if self.data["manufacturer"] == "Kaercher":
                 try:
                     v = yield from cluster.read_attributes([0, 1, 2, 3, 4], manufacturer=0x122C)
-                except:  # pragma: no cover
+                except zigbee_exp.DeliveryError:  # pragma: no cover
                     LOGGER.error("Failed to read attributes from device %s", str(self._dev.ieee))
                     return
                 self._handle_attributes_reply(v, self._handle_kaercher_attributes)

@@ -70,7 +70,7 @@ class Application():
                 self._zb.close()
             if hasattr(self, "_rpc"):
                 self._rpc.close()
-        except:  # pragma: no cover
+        except Exception:  # pragma: no cover
             e = sys.exc_info()[0]
             LOGGER.exception(e)
 
@@ -191,7 +191,7 @@ class Application():
 
     # RPC calls
     @asyncio.coroutine
-    def PUT(self, url, data):
+    def put(self, url, data):
         LOGGER.debug(url)
         LOGGER.debug(data)
 
@@ -211,7 +211,7 @@ class Application():
             return "Invalid service (%s) in url" % service
 
     @asyncio.coroutine
-    def POST(self, url, data):
+    def post(self, url, data):
         LOGGER.debug(url)
         LOGGER.debug(data)
 
@@ -220,7 +220,7 @@ class Application():
         return False
 
     @asyncio.coroutine
-    def GET(self, url, data=None):
+    def get(self, url, data=None):
         LOGGER.debug(url)
 
         service, id = self._split_url(url)
@@ -240,7 +240,7 @@ class Application():
             return "Invalid service (%s) in url" % service
 
     @asyncio.coroutine
-    def DELETE(self, url, data=None):
+    def delete(self, url, data=None):
         LOGGER.debug(url)
 
         service, id = self._split_url(url)

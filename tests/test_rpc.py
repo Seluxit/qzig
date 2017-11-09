@@ -17,7 +17,7 @@ def test_wrong_service(app):
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
-def test_wrong_PUT(app):
+def test_wrong_put(app):
     devices = util._get_device()
     util._startup(app, devices)
 
@@ -31,7 +31,7 @@ def test_wrong_PUT(app):
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
-def test_wrong_POST(app):
+def test_wrong_post(app):
     devices = util._get_device()
     util._startup(app, devices)
 
@@ -45,7 +45,7 @@ def test_wrong_POST(app):
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
-def test_wrong_GET(app):
+def test_wrong_get(app):
     devices = util._get_device()
     util._startup(app, devices)
 
@@ -75,7 +75,7 @@ def test_wrong_GET(app):
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
-def test_wrong_DELETE(app):
+def test_wrong_delete(app):
     devices = util._get_device()
     util._startup(app, devices)
 

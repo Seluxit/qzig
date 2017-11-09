@@ -10,9 +10,9 @@ import qzig.application as application
 
 def setup_logging():
     # set up logging to file
-    FORMAT = '%(asctime)s %(name)-14s %(levelname)-8s %(message)s'
+    format = '%(asctime)s %(name)-14s %(levelname)-8s %(message)s'
     logging.basicConfig(level=logging.DEBUG,
-                        format=FORMAT,
+                        format=format,
                         datefmt='%m-%d %H:%M',
                         filename='/tmp/qzig.log',
                         filemode='w')
@@ -38,15 +38,15 @@ def main():  # pragma: no cover
     device = args.device[0]
     network_id = args.networkID
 
-    baseDir, baseFile = os.path.split(os.path.abspath(__file__))
-    certBase = baseDir
-    sslServerCert = certBase + "/certificates/ca.crt"
-    sslClientCert = certBase + "/certificates/client.crt"
-    sslKey = certBase + "/certificates/client.key"
+    base_dir, base_file = os.path.split(os.path.abspath(__file__))
+    cert_base = base_dir
+    ssl_server_cert = cert_base + "/certificates/ca.crt"
+    ssl_client_cert = cert_base + "/certificates/client.crt"
+    ssl_key = cert_base + "/certificates/client.key"
 
     ssl_ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_SSLv23)
-    ssl_ctx.load_cert_chain(certfile=sslClientCert, keyfile=sslKey)
-    ssl_ctx.load_verify_locations(cafile=sslServerCert)
+    ssl_ctx.load_cert_chain(certfile=ssl_client_cert, keyfile=ssl_key)
+    ssl_ctx.load_verify_locations(cafile=ssl_server_cert)
     ssl_ctx.verify_mode = ssl.CERT_REQUIRED
 
     app = application.Application(device, network_id, host="q-wot.com", port=21005, ssl=ssl_ctx)
