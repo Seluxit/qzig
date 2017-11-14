@@ -192,7 +192,7 @@ def test_state_on_timeout_change(app):
     assert app._rpc._transport.write.call_count == (count + 2)
 
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
-    assert '"data": "10"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_state_report_change(app):
@@ -421,9 +421,8 @@ def test_delete_device(app, store):
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 1)
+    assert app._rpc._transport.write.call_count == (count + 2)
     assert "result" in app._rpc._transport.write.call_args[0][0].decode()
-    assert d._dev.zdo._leave is True
 
     assert len((store + "/device").listdir()) == 0
 

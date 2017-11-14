@@ -104,12 +104,15 @@ class JsonRPC(asyncio.Protocol):
                 LOGGER.error(result)
                 self._send_error(item["id"], str(result))
 
-    def _send(self, rpc, id, fut=None):
-        LOGGER.debug(json.dumps(rpc,
+    def _print(self, data):  # pragma: nocover
+        LOGGER.debug(json.dumps(data,
                                 cls=qzig.util.QZigEncoder,
                                 sort_keys=True,
                                 indent=4,
                                 separators=(',', ': ')))
+
+    def _send(self, rpc, id, fut=None):
+        # self._print(rpc)
         rpc = json.dumps(rpc, cls=qzig.util.QZigEncoder)
         self._sendq.put_nowait((rpc, id, fut))
         return fut

@@ -39,8 +39,6 @@ class Gateway(device.Device):
             self.add_value(-3, -3)
             self.save()
 
-        print(self._children)
-
     def create_child(self, **args):
         id = -1
         if "load" in args:

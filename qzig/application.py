@@ -157,6 +157,11 @@ class Application():
         service = path[-2]
         return service, id
 
+    @asyncio.coroutine
+    def delete_device(self, ieee):
+        v = yield from self._zb.controller.remove(ieee)
+        return v
+
     # Callbacks
     def device_left(self, device):
         LOGGER.debug("Device left %s", str(device.ieee))

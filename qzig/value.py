@@ -111,7 +111,10 @@ class Value(model.Model):
 
     @property
     def index(self):
-        return self.attr["index"]
+        if "index" in self.attr:
+            return self.attr["index"]
+        else:  # pragma: nocover
+            return 0
 
     def _parse(self):
         self.data["permission"] = ValuePermission(self.data["permission"])
@@ -183,14 +186,6 @@ class Value(model.Model):
         if s is not None:
             yield from asyncio.sleep(time)
             s.attribute_updated(attribute, value)
-
-    def async_command(self, value, *args):
-        async_fun = getattr(asyncio, "ensure_future", asyncio.async)
-        return async_fun(self._async_command(value, args))
-
-    @asyncio.coroutine
-    def _async_command(self, value, args):
-        yield from value.send_command(args)
 
     @asyncio.coroutine
     def handle_control(self, data):  # pragma: no cover

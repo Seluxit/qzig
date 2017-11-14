@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 
@@ -49,10 +48,10 @@ class Ota(value.Value):
 
             LOGGER.debug("Upgrading %s to %s (%s) size %s", filename, upgrade, new_version, size)
 
-            self.async_command(self, 'query_next_image_response', Status.SUCCESS, manufacturer_id, image_type, new_version, size)
+            self._cluster.query_next_image_response(Status.SUCCESS, manufacturer_id, image_type, new_version, size)
         except FileNotFoundError:
             LOGGER.warning("Failed to find %s", filename)
-            self.async_command(self, 'query_next_image_response', Status.NO_IMAGE_AVAILABLE, 0, 0, 0, 0)
+            self._cluster.query_next_image_response(Status.NO_IMAGE_AVAILABLE, 0, 0, 0, 0)
 
     def handle_image_block(self, control, manufacturer_id, image_type, version, offset, max_size, *args):
         LOGGER.debug("Image Block Request - Control %d Manufactor %d Type %d Version %d Offset %d Max size %d", control, manufacturer_id, image_type, version, offset, max_size)
@@ -65,18 +64,11 @@ class Ota(value.Value):
             size = len(data)
 
             LOGGER.debug("Sending OTA Image Block Response frame - Offset %s Size %s", offset, size)
-            self.async_command(self, 'image_block_response', Status.SUCCESS, manufacturer_id, image_type, version, offset, data)
+            self._cluster.image_block_response(Status.SUCCESS, manufacturer_id, image_type, version, offset, data)
         except FileNotFoundError:
             LOGGER.error("Failed to load data from file %s", filename)
-            self.async_command(self, 'image_block_response', Status.ABORT, 0, 0, 0, 0, 0)
+            self._cluster.image_block_response(Status.ABORT, 0, 0, 0, 0, 0)
 
     def handle_update_end(self, status, manufacturer_id, image_type, version):
         LOGGER.debug("Update End Request - Status %d Manufactor %s Type %d Version %d", status, manufacturer_id, image_type, version)
-        self.async_command(self, 'upgrade_end_response', manufacturer_id, image_type, version, 0, 0)
-
-    @asyncio.coroutine
-    def send_command(self, args):
-        func = args[0]
-        args = args[1:]
-
-        yield from self._cluster.__getattr__(func)(*args)
+        self._cluster.upgrade_end_response(manufacturer_id, image_type, version, 0, 0)

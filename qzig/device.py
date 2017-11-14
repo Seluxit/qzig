@@ -42,7 +42,7 @@ class Device(model.Model):
             "protocol": "ZigBee",
             "communication": "",
             "included": "1",
-            # "status": [],
+            "status": [],
             "value": []
         }
         self.attr = {
@@ -57,13 +57,21 @@ class Device(model.Model):
     def child_name(self):
         return "value"
 
+    @property
+    def manufacturer(self):
+        return self.data["manufacturer"]
+
     def create_child(self, **args):
         if "load" in args and "attr" in args["load"]:
             cid = args["load"]["attr"]["cluster_id"]
             cls = values.get_value_class(cid)
             if isinstance(cls, list) and len(cls) > 1:
                 for c in cls:
-                    if c._index == args["load"]["attr"]["index"]:
+                    try:
+                        index = args["load"]["attr"]["index"]
+                    except KeyError:  # pragma: nocover
+                        index = 0
+                    if c._index == index:
                         cls = c
                         break
         elif "cluster_id" in args:
@@ -210,10 +218,7 @@ class Device(model.Model):
     def add_status(self, type, level, message):
         LOGGER.debug("%s | New %s status: %s", level, type, message)
         stat = status.Status(self, type, level, message)
-        if "status" not in self.data:
-            self.data["status"] = []
         self.data["status"].insert(0, stat)
-
         stat.send_post("", stat.get_data())
 
     def permit_duration(self, duration):
@@ -238,9 +243,10 @@ class Device(model.Model):
 
     @asyncio.coroutine
     def delete(self):
-        v = yield from self._dev.zdo.leave()
-        LOGGER.debug(v)
         self._remove_files()
+
+        v = yield from self.delete_device(self.ieee)
+        LOGGER.debug(v)
 
         return True
 

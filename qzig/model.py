@@ -48,6 +48,10 @@ class Model():
         return str(type(self).__name__).lower()
 
     @property
+    def manufacturer(self):
+        return self._parent.manufacturer
+
+    @property
     def child_name(self):
         if not hasattr(self, "_child_name"):
             self._child_name = ""
@@ -156,4 +160,9 @@ class Model():
     @asyncio.coroutine
     def permit_with_key(self, node, code, timeout):
         v = yield from self._parent.permit_with_key(node, code, timeout)
+        return v
+
+    @asyncio.coroutine
+    def delete_device(self, ieee):
+        v = yield from self._parent.delete_device(ieee)
         return v

@@ -97,9 +97,8 @@ class MockCluster():
         return [0, 0]
 
     @asyncio.coroutine
-    def on_with_timed_off(self, timeout):
-        self._timeout = timeout
-        return [timeout, 0]
+    def on_with_timed_off(self):
+        return [0, 0]
 
     @asyncio.coroutine
     def identify(self, timeout):

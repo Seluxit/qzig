@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 import qzig.value as value
+import bellows.types as t
 
 LOGGER = logging.getLogger(__name__)
 
@@ -66,7 +67,10 @@ class OnTimeout(value.Value):
     @asyncio.coroutine
     def handle_control(self, data):
         data = int(data)
-        v = yield from self._cluster.on_with_timed_off(data * 10)
+        if self.manufacturer == "Kaercher":
+            v = yield from self._cluster.request(False, 0x42, (t.uint16_t, ), data * 10, manufacturer=0x122C)
+        else:
+            v = yield from self._cluster.on_with_timed_off()
 
         LOGGER.debug(v)
 
