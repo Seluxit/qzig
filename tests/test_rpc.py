@@ -2,6 +2,8 @@ import asyncio
 import tests.util as util
 import qzig.state as state
 
+import bellows.zigbee.zcl.clusters.general as general_clusters
+
 
 def test_wrong_service(app):
     devices = util._get_device()
@@ -174,7 +176,7 @@ def test_state_on_change(app):
     assert '"data": "1"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
-def test_state_on_timeout_change(app):
+def test_state_on_time_change(app):
     app._gateway = None
     devices = util._get_device()
     util._startup(app, devices)
@@ -182,6 +184,50 @@ def test_state_on_timeout_change(app):
     count = app._rpc._transport.write.call_count
 
     s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, "1")
+    app._rpc.data_received(rpc.encode())
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_on_timeout_change(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    count = app._rpc._transport.write.call_count
+
+    s = app._network._children[0]._children[2].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, "1")
+    app._rpc.data_received(rpc.encode())
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_kaercher_on_timeout_change(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    app._network._children[0].data["manufacturer"] = "Kaercher"
+
+    count = app._rpc._transport.write.call_count
+
+    s = app._network._children[0]._children[2].get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, "1")
@@ -216,10 +262,110 @@ def test_state_report_change(app):
 
 def test_state_identify_change(app):
     app._gateway = None
-    devices = util._get_device(3)
+    devices = util._get_device(general_clusters.Identify.cluster_id)
     util._startup(app, devices)
 
     s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_poll_check_in_interval_change(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_poll_long_interval_change(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_poll_short_interval_change(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[2].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_poll_fast_interval_change(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[3].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_poll_stop_fast_change(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[4].get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)

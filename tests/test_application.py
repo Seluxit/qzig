@@ -16,8 +16,8 @@ def test_init(app, tmpdir, store):
 
 def test_only_zigbee_devices(app, store):
     app._gateway = None
-    device = MockDevice("device1", 1)
-    devices = {"device1": device}
+    device = MockDevice("00:11:22:33:44:55:66:77", 1)
+    devices = {"00:11:22:33:44:55:66:77": device}
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
@@ -27,9 +27,9 @@ def test_only_zigbee_devices(app, store):
 def test_only_zigbee_device_and_endpoint(app, store):
     app._gateway = None
     endpoint = MockEndpoint(1)
-    device = MockDevice("device1", 1)
+    device = MockDevice("00:11:22:33:44:55:66:77", 1)
     device.endpoints[1] = endpoint
-    devices = {"device1": device}
+    devices = {"00:11:22:33:44:55:66:77": device}
     util._startup(app, devices)
 
     assert len(store.listdir()) == 2
@@ -45,7 +45,7 @@ def test_zigbee_device_and_endpoint_and_cluster(app, store):
     assert len(store.listdir()) == 2
     assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
-    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 2
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 3
     assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
     assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()) == 2
     assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()[0].listdir()) == 1
@@ -59,9 +59,9 @@ def test_zigbee_device_and_endpoint_and_many_cluster(app):
     for c in range(100, 200):
         endpoint.out_clusters[c] = MockCluster(c)
     endpoint.in_clusters[0x0402] = MockCluster(0x0402)
-    device = MockDevice("device1", 1)
+    device = MockDevice("00:11:22:33:44:55:66:77", 1)
     device.endpoints[1] = endpoint
-    devices = {"device1": device}
+    devices = {"00:11:22:33:44:55:66:77": device}
     util._startup(app, devices)
 
     assert endpoint.in_clusters[0]._cb is None
@@ -79,7 +79,7 @@ def test_load_json(app, tmpdir, store):
     assert len(store.listdir()) == 2
     assert len((store + "/device").listdir()) == 1
     assert len((store + "/device").listdir()[0].listdir()) == 2
-    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 2
+    assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 3
     assert len(((store + "/device").listdir()[0] + "/value").listdir()[0].listdir()) == 2
     assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()) == 2
     assert len((((store + "/device").listdir()[0] + "/value").listdir()[0] + "/state").listdir()[0].listdir()) == 1
@@ -154,6 +154,6 @@ def test_gateway_load_old(app, tmpdir, store):
 
 
 def test_remove_deivce_at_boot(app):
-    device = MockDevice("device1", 1)
+    device = MockDevice("00:11:22:33:44:55:66:77", 1)
     devices = {"wrong": device}
     util._startup(app, devices)

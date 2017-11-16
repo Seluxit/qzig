@@ -84,8 +84,6 @@ class Device(model.Model):
             if not isinstance(cls, list):
                 cls = [cls]
             for c in cls:
-                if c._singleton and "endpoint_id" in args and args["endpoint_id"] != 1:
-                    next
                 c._index = index
                 index += 1
                 vals.append(c(self, **args))
@@ -138,6 +136,9 @@ class Device(model.Model):
             val = self.get_value(endpoint_id, cluster_id, r.index)
             if val is None:
                 val = r
+                if val._singleton and endpoint_id != 1:
+                    LOGGER.debug("Dropping singleton value")
+                    next
                 self._children.append(val)
             val._parent = self
             values.append(val)

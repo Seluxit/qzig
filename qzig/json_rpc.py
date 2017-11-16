@@ -95,7 +95,11 @@ class JsonRPC(asyncio.Protocol):
 
             try:
                 result = yield from getattr(self._app, method)(**params)
+            except AssertionError as e:
+                LOGGER.error("Assertion error", exc_info=True)
+                raise e
             except Exception as e:
+                LOGGER.error("Exception: %s (%s)", e, type(e))
                 result = str(e)
 
             if result is True:

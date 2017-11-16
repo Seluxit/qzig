@@ -38,7 +38,7 @@ def test_zigbee_device_initialized(app):
     devices = util._get_device()
     endpoint = util.MockEndpoint(2)
     endpoint.in_clusters[general_clusters.OnOff.cluster_id] = util.MockCluster(general_clusters.OnOff.cluster_id)
-    devices['device1'].endpoints[2] = endpoint
+    devices['00:11:22:33:44:55:66:77'].endpoints[2] = endpoint
 
     util._startup(app, devices)
 
@@ -294,6 +294,29 @@ def test_zigbee_power_update(app):
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert '"123456789000"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_zigbee_poll_update(app):
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.PollControl.cluster_id]
+
+    assert cluster._cb is not None
+
+    for c in cluster._cb:
+        c.attribute_updated(0x0, 1234567890)
+        c.attribute_updated(0x1, 1234567890)
+        c.attribute_updated(0x2, 1234567890)
+        c.attribute_updated(0x3, 1234567890)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 4)
+    assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_zigbee_kaercher_update(app):

@@ -2,6 +2,7 @@ import sys
 import asyncio
 import logging
 
+import bellows.types as t
 import bellows.zigbee.util as util
 import qzig.zigbee as zigbee
 import qzig.json_rpc as json_rpc
@@ -159,6 +160,8 @@ class Application():
 
     @asyncio.coroutine
     def delete_device(self, ieee):
+        if type(ieee) is str:
+            ieee = t.EmberEUI64([t.uint8_t(p, base=16) for p in ieee.split(':')])
         v = yield from self._zb.controller.remove(ieee)
         return v
 
@@ -197,9 +200,6 @@ class Application():
     # RPC calls
     @asyncio.coroutine
     def put(self, url, data):
-        LOGGER.debug(url)
-        LOGGER.debug(data)
-
         service, id = self._split_url(url)
 
         if service == "state":
@@ -217,17 +217,12 @@ class Application():
 
     @asyncio.coroutine
     def post(self, url, data):
-        LOGGER.debug(url)
-        LOGGER.debug(data)
-
         service, id = self._split_url(url)
 
         return False
 
     @asyncio.coroutine
     def get(self, url, data=None):
-        LOGGER.debug(url)
-
         service, id = self._split_url(url)
 
         if service == "state":
@@ -236,7 +231,6 @@ class Application():
                 return "Failed to find id %s" % id
 
             if s.name != "state":
-                LOGGER.debug(s)
                 return "ID is not a state"
 
             res = yield from s.handle_get()
@@ -246,8 +240,6 @@ class Application():
 
     @asyncio.coroutine
     def delete(self, url, data=None):
-        LOGGER.debug(url)
-
         service, id = self._split_url(url)
 
         if service == "device":

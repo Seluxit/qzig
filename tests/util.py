@@ -10,7 +10,7 @@ class ControllerMock():
     def __init__(self, ezsp, db):
         self._ezsp = ezsp
         self.nwk = 0
-        self.ieee = "11:22:33:44:55"
+        self.ieee = "00:11:22:33:44:55:66:77"
         self.devices = app_devices
         self._cb = None
         self.permit = mock.MagicMock()
@@ -79,6 +79,11 @@ class MockCluster():
                 return None
 
     @asyncio.coroutine
+    def write_attributes(self, attributes, is_report=False):
+        print("write attributes")
+        return [0, 0]
+
+    @asyncio.coroutine
     def leave(self):
         self._leave = True
 
@@ -110,8 +115,8 @@ class MockCluster():
         self._cb.append(obj)
 
     @asyncio.coroutine
-    def dummy(self, *args):
-        pass
+    def dummy(self, *args, manufacturer=None):
+        return [0, 0]
 
     def __getattr__(self, *args):
         return self.dummy
@@ -150,7 +155,7 @@ def _startup(app, devs={}, server_devices=[]):
 
     assert app._network is not None
     if len(server_devices) == 0:
-        if len(devs) == 0 or "device1" in devs:
+        if len(devs) == 0 or "00:11:22:33:44:55:66:77" in devs:
             assert app._rpc._transport.write.call_count == 2
         else:
             assert app._rpc._transport.write.call_count == 3
@@ -162,9 +167,9 @@ def _startup(app, devs={}, server_devices=[]):
 def _get_device(cluster=6):
     endpoint = MockEndpoint(1)
     endpoint.in_clusters[cluster] = MockCluster(cluster)
-    device = MockDevice("device1", 1)
+    device = MockDevice("00:11:22:33:44:55:66:77", 1)
     device.endpoints[1] = endpoint
-    return {"device1": device}
+    return {"00:11:22:33:44:55:66:77": device}
 
 
 def _rpc_state(id, data):
