@@ -46,7 +46,6 @@ class OnOff(value.Value):
 class OnTimeout(value.Value):
     _bind = False
     _attribute = 0x42
-    _index = 1
 
     def _init(self):
         self.data = {
@@ -65,9 +64,9 @@ class OnTimeout(value.Value):
         self.data["number"].unit = "seconds"
 
     @asyncio.coroutine
-    def handle_control(self, data):
-        data = int(data)
+    def handle_control(self, data=None):
         if self.manufacturer == "Kaercher":
+            data = int(data)
             v = yield from self._cluster.request(False, 0x42, (t.uint16_t, ), data * 10, manufacturer=0x122C)
         else:
             v = yield from self._cluster.on_with_timed_off()

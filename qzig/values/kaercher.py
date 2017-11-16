@@ -39,6 +39,7 @@ class KaercherDeviceState(Cluster):
 class DeviceState(value.Value):
     _bind = True
     _attribute = 0
+    _singleton = True
 
     def _init(self):
         self.data = {
@@ -56,25 +57,50 @@ class DeviceState(value.Value):
         self.data["number"].step = 1
         self.data["number"].unit = "State"
 
-    def handle_report(self, attribute, data):
-        if attribute == self._attribute:
-            return data
-        elif attribute == 0x001:
-            if data == 0:
-                message = "OTA is not being requested"
-            else:
-                message = "OTA is requested every 24 hours"
-            self._parent.add_status(status.StatusType.APPLICATION, status.StatusLevel.INFO, message)
-        elif attribute == 0x0100:
-            if data == 1:
-                self._parent.add_status(status.StatusType.APPLICATION, status.StatusLevel.ERROR, "Valve is blocked")
-            elif data == 2:
-                self._parent.add_status(status.StatusType.APPLICATION, status.StatusLevel.ERROR, "Valve not connected")
+
+class DeviceStateOtaUpdate(value.Value):
+    _attribute = 1
+    _singleton = True
+
+    def _init(self):
+        self.data = {
+            ":type": "urn:seluxit:xml:bastard:value-1.1",
+            ":id": self.uuid,
+            "name": "Device State OTA Update",
+            "permission": value.ValuePermission.READ_ONLY,
+            "type": "On/off",
+            "number": value.ValueNumberType(),
+            "status": value.ValueStatus.OK,
+            "state": []
+        }
+        self.data["number"].min = 0
+        self.data["number"].max = 1
+        self.data["number"].step = 1
+        self.data["number"].unit = "Boolean"
+
+
+class DeviceStateValueError(value.Value):
+    _attribute = 0x0100
+
+    def _init(self):
+        self.data = {
+            ":type": "urn:seluxit:xml:bastard:value-1.1",
+            ":id": self.uuid,
+            "name": "Device State Valve Error",
+            "permission": value.ValuePermission.READ_ONLY,
+            "type": "State",
+            "number": value.ValueStringType(),
+            "status": value.ValueStatus.OK,
+            "state": []
+        }
+        self.data["number"].min = 0
+        self.data["number"].max = 2
+        self.data["number"].step = 1
+        self.data["number"].unit = "State"
 
 
 class FallbackEnable(value.Value):
     _attribute = 0
-    _index = 0
 
     def _init(self):
         self.data = {
@@ -95,7 +121,6 @@ class FallbackEnable(value.Value):
 
 class FallbackOnline(value.Value):
     _attribute = 1
-    _index = 1
 
     def _init(self):
         self.data = {
@@ -116,7 +141,6 @@ class FallbackOnline(value.Value):
 
 class FallbackStartTime(value.Value):
     _attribute = 2
-    _index = 2
 
     def _init(self):
         self.data = {
@@ -137,7 +161,6 @@ class FallbackStartTime(value.Value):
 
 class FallbackDuration(value.Value):
     _attribute = 3
-    _index = 3
 
     def _init(self):
         self.data = {
@@ -158,7 +181,6 @@ class FallbackDuration(value.Value):
 
 class FallbackInterval(value.Value):
     _attribute = 4
-    _index = 4
 
     def _init(self):
         self.data = {

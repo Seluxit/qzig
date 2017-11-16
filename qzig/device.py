@@ -78,11 +78,16 @@ class Device(model.Model):
             cid = args["cluster_id"]
             cls = values.get_value_class(cid)
 
+        index = 0
         vals = []
         if cls is not None:
             if not isinstance(cls, list):
                 cls = [cls]
             for c in cls:
+                if c._singleton and "endpoint_id" in args and args["endpoint_id"] != 1:
+                    next
+                c._index = index
+                index += 1
                 vals.append(c(self, **args))
 
         for val in vals:

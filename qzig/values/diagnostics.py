@@ -8,7 +8,6 @@ LOGGER = logging.getLogger(__name__)
 class DiagnosticsRssi(value.Value):
     _bind = True
     _attribute = 0x011D
-    _index = 0
 
     def _init(self):
         self.data = {
@@ -30,7 +29,6 @@ class DiagnosticsRssi(value.Value):
 class DiagnosticsLinkQuality(value.Value):
     _bind = True
     _attribute = 0x011C
-    _index = 1
 
     def _init(self):
         self.data = {

@@ -70,6 +70,7 @@ class ValueStatus(enum.Enum):
 class Value(model.Model):
     _bind = False
     _index = 0
+    _singleton = False
 
     def __init__(self, parent, endpoint_id=None, cluster_id=None, load=None):
         self._parent = parent

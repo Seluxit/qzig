@@ -325,19 +325,16 @@ def test_zigbee_kaercher_status_update(app):
 
     assert cluster._cb is not None
 
-    for c in cluster._cb:
-        c.attribute_updated(0x0001, 1)
-        c.attribute_updated(0x0001, 0)
-        c.attribute_updated(0x0100, 1)
-        c.attribute_updated(0x0100, 2)
-
     count = app._rpc._transport.write.call_count
+
+    for c in cluster._cb:
+        c.attribute_updated(0, 1)
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 4)
+    assert app._rpc._transport.write.call_count == (count + 1)
     print(app._rpc._transport.write.call_args[0][0].decode())
-    assert '"Valve not connected"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"data": "1"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_zigbee_kaercher_fallback_update(app):
