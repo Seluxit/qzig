@@ -392,3 +392,29 @@ def test_zigbee_permit_duration(app):
     dev.permit_duration(1)
 
     assert app._rpc._transport.write.call_count == count
+
+
+def test_zigbee_singleton(app):
+    devices = util._get_device()
+    endpoint1 = util.MockEndpoint(1)
+    endpoint2 = util.MockEndpoint(2)
+    endpoint1.in_clusters[kaercher.KaercherDeviceState.cluster_id] = util.MockCluster(kaercher.KaercherDeviceState.cluster_id)
+    endpoint2.in_clusters[kaercher.KaercherDeviceState.cluster_id] = util.MockCluster(kaercher.KaercherDeviceState.cluster_id)
+    devices['00:11:22:33:44:55:66:77'].endpoints[1] = endpoint1
+    devices['00:11:22:33:44:55:66:77'].endpoints[2] = endpoint2
+    util._startup(app, devices)
+
+    assert len(app._network._children[1]._children) == 4
+
+
+def test_zigbee_not_singleton(app):
+    devices = util._get_device()
+    endpoint1 = util.MockEndpoint(1)
+    endpoint2 = util.MockEndpoint(2)
+    endpoint1.in_clusters[general_clusters.OnOff.cluster_id] = util.MockCluster(general_clusters.OnOff.cluster_id)
+    endpoint2.in_clusters[general_clusters.OnOff.cluster_id] = util.MockCluster(general_clusters.OnOff.cluster_id)
+    devices['00:11:22:33:44:55:66:77'].endpoints[1] = endpoint1
+    devices['00:11:22:33:44:55:66:77'].endpoints[2] = endpoint2
+    util._startup(app, devices)
+
+    assert len(app._network._children[1]._children) == 6

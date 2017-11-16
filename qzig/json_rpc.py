@@ -95,7 +95,7 @@ class JsonRPC(asyncio.Protocol):
 
             try:
                 result = yield from getattr(self._app, method)(**params)
-            except AssertionError as e:
+            except AssertionError as e: # pragma: nocover
                 LOGGER.error("Assertion error", exc_info=True)
                 raise e
             except Exception as e:

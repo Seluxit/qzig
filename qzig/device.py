@@ -135,10 +135,10 @@ class Device(model.Model):
         for r in real:
             val = self.get_value(endpoint_id, cluster_id, r.index)
             if val is None:
+                if r._singleton and endpoint_id != 1:
+                    LOGGER.debug("Dropping %s because it is a singleton value", r.data["name"])
+                    continue
                 val = r
-                if val._singleton and endpoint_id != 1:
-                    LOGGER.debug("Dropping singleton value")
-                    next
                 self._children.append(val)
             val._parent = self
             values.append(val)
