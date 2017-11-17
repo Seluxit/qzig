@@ -1,7 +1,6 @@
 import logging
 
 import qzig.value as value
-import qzig.status as status
 import bellows.types as t
 from bellows.zigbee.zcl import Cluster
 

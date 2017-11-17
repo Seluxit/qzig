@@ -141,9 +141,11 @@ class Value(model.Model):
             rep = self.get_state(state.StateType.REPORT)
             if rep is not None:
                 cluster.add_listener(rep)
-                if self._should_bind and self._bind:
-                    LOGGER.debug("Binding to %s" % self.data["name"])
-                    yield from self.bind(self.endpoint_id, self.cluster_id)
+                if self._should_bind:
+                    yield from self.handle_get()
+                    if self._bind:
+                        LOGGER.debug("Binding to %s" % self.data["name"])
+                        yield from self.bind(self.endpoint_id, self.cluster_id)
 
     def add_states(self, types):
         for t in types:
@@ -175,7 +177,7 @@ class Value(model.Model):
     def handle_report(self, attribute, data):
         if hasattr(self, '_attribute'):
             if self._attribute == attribute:
-                return data
+                return int(data)
 
     def delayed_report(self, time, attribute, value):
         async_fun = getattr(asyncio, "ensure_future", asyncio.async)

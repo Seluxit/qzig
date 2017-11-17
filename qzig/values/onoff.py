@@ -112,3 +112,24 @@ class OnTimeout(value.Value):
 
         self.save()
         return True
+
+
+class BlockageCounter(value.Value):
+    _bind = False
+    _attribute = 1
+
+    def _init(self):
+        self.data = {
+            ":type": "urn:seluxit:xml:bastard:value-1.1",
+            ":id": self.uuid,
+            "name": "Blockage Counter",
+            "permission": value.ValuePermission.READ_ONLY,
+            "type": "Counter",
+            "number": value.ValueNumberType(),
+            "status": value.ValueStatus.OK,
+            "state": []
+        }
+        self.data["number"].min = 0
+        self.data["number"].max = 0xFFFF
+        self.data["number"].step = 1
+        self.data["number"].unit = ""

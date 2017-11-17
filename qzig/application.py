@@ -139,6 +139,7 @@ class Application():
     @asyncio.coroutine
     def _clean_server_devices(self):
         devices = yield from self._rpc.get("/network/" + self._network.id + "/device")
+
         if devices.get("code") is not None:  # pragma: no cover
             LOGGER.error("Failed to get devices from server: %s" % devices.get("message"))
             return

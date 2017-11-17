@@ -52,8 +52,8 @@ def test_zigbee_device_initialized(app):
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 1)
-    assert '"POST"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert app._rpc._transport.write.call_count == (count + 3)
+    assert '"PUT"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_zigbee_device_left(app):
@@ -418,3 +418,11 @@ def test_zigbee_not_singleton(app):
     util._startup(app, devices)
 
     assert len(app._network._children[1]._children) == 6
+
+
+def test_zigbee_kaercher_blockage_counter(app):
+    devices = util._get_device(general_clusters.OnOff.cluster_id)
+    devices['00:11:22:33:44:55:66:77'].endpoints[1].in_clusters[general_clusters.Basic.cluster_id] = util.MockCluster(general_clusters.Basic.cluster_id)
+    util._startup(app, devices)
+
+    assert len(app._network._children[1]._children) == 4

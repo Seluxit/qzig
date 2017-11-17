@@ -65,10 +65,11 @@ class MockCluster():
 
     @asyncio.coroutine
     def read_attributes(self, *args, **kwargs):
+        print(args, kwargs)
         self.reply_count += 1
         if self.cluster_id == 6:
             return [{0: 0}, 0]
-        else:
+        elif self.cluster_id == 0:
             if self.reply_count == 1:
                 return [{0: 2, 1: 0, 4: b'Kaercher', 5: b'test', 7: 3, 10: b'0'}, 0]
             elif self.reply_count == 2:
@@ -77,6 +78,8 @@ class MockCluster():
                 return [{0: 2, 1: b'test', 2: b'test', 3: b'test', 4: b'test'}, 0]
             else:
                 return None
+        else:
+            return [{args[0][0]: 0}, 0]
 
     @asyncio.coroutine
     def write_attributes(self, attributes, is_report=False):
@@ -154,14 +157,6 @@ def _startup(app, devs={}, server_devices=[]):
     loop.run_until_complete(app.init())
 
     assert app._network is not None
-    if len(server_devices) == 0:
-        if len(devs) == 0 or "00:11:22:33:44:55:66:77" in devs:
-            assert app._rpc._transport.write.call_count == 2
-        else:
-            assert app._rpc._transport.write.call_count == 3
-        assert app._rpc._pending[0] == -1
-    else:
-        assert app._rpc._transport.write.call_count == 3
 
 
 def _get_device(cluster=6):

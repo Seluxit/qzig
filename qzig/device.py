@@ -64,7 +64,7 @@ class Device(model.Model):
     def create_child(self, **args):
         if "load" in args and "attr" in args["load"]:
             cid = args["load"]["attr"]["cluster_id"]
-            cls = values.get_value_class(cid)
+            cls = values.get_value_class(cid, self.manufacturer)
             if isinstance(cls, list) and len(cls) > 1:
                 for c in cls:
                     try:
@@ -76,7 +76,7 @@ class Device(model.Model):
                         break
         elif "cluster_id" in args:
             cid = args["cluster_id"]
-            cls = values.get_value_class(cid)
+            cls = values.get_value_class(cid, self.manufacturer)
 
         index = 0
         vals = []
