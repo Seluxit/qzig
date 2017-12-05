@@ -137,24 +137,21 @@ class Value(model.Model):
         self._endpoint = endpoint
         self._cluster = cluster
 
-        if self.data is None:
-            return
+        if hasattr(self, 'handle_command'):
+            LOGGER.debug("Adding handle command")
+            print(cluster)
+            cluster.handle_cluster_request = self.handle_command
 
-        if self._bind:
-            if hasattr(self, 'handle_command'):
-                cluster.handle_cluster_request = self.handle_command
-
-            st = self.get_state(state.StateType.REPORT)
-            if st is None:
-                st = self.get_state(state.StateType.CONTROL)
-            elif self._should_bind:
-                yield from self.handle_get()
-            cluster.add_listener(st)
-
+        rep = self.get_state(state.StateType.REPORT)
+        if rep is not None:
+            cluster.add_listener(rep)
 
         if self._should_bind:
-            LOGGER.debug("Binding to %s" % self.data["name"])
-            yield from self.bind(self.endpoint_id, self.cluster_id)
+            if self._bind:
+                LOGGER.debug("Binding to %s" % self.data["name"])
+                yield from self.bind(self.endpoint_id, self.cluster_id)
+            else:
+                yield from self.handle_get()
 
     def add_states(self, types):
         for t in types:

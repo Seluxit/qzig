@@ -380,6 +380,26 @@ def test_state_poll_stop_fast_change(app):
     assert "result" in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_reset_all_alarms(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.Alarms.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_device_change_state(app):
     devices = util._get_device()
     util._startup(app, devices)

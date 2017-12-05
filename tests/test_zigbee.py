@@ -202,35 +202,23 @@ def test_zigbee_ota_update(app):
     dev = next(iter(devices.values()))
     cluster = dev.endpoints[1].in_clusters[general_clusters.Ota.cluster_id]
 
-    assert cluster._cb is not None
-
-    for c in cluster._cb:
-        c.cluster_command(0, 0, 1, (1, 2, 2, 2, 2))
-
+    cluster.handle_cluster_request(0, 0, 1, (1, 2, 2, 2, 2))
     util.run_loop()
 
-    for c in cluster._cb:
-        c.cluster_command(0, 0, 3, (1, 2, 2, 2, 0, 50))
-
+    cluster.handle_cluster_request(0, 0, 3, (1, 2, 2, 2, 0, 50))
     util.run_loop()
 
-    for c in cluster._cb:
-        c.cluster_command(0, 0, 6, (1, 2, 2, 2))
-
+    cluster.handle_cluster_request(0, 0, 6, (1, 2, 2, 2))
     util.run_loop()
 
     os.system("mkdir -p ota")
     os.system("echo 2-2-2.bin > ota/2-2-2.upgrade")
     os.system("dd if=/dev/zero of=ota/2-2-2.bin bs=1M count=1")
 
-    for c in cluster._cb:
-        c.cluster_command(0, 0, 1, (1, 2, 2, 2, 2))
-
+    cluster.handle_cluster_request(0, 0, 1, (1, 2, 2, 2, 2))
     util.run_loop()
 
-    for c in cluster._cb:
-        c.cluster_command(0, 0, 3, (1, 2, 2, 2, 0, 50))
-
+    cluster.handle_cluster_request(0, 0, 3, (1, 2, 2, 2, 0, 50))
     util.run_loop()
 
     os.system("rm ota/2-2-2.*")
@@ -426,3 +414,18 @@ def test_zigbee_kaercher_blockage_counter(app):
     util._startup(app, devices)
 
     assert len(app._network._children[1]._children) == 4
+
+
+def test_zigbee_alarm_update(app):
+    devices = util._get_device(general_clusters.Alarms.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.Alarms.cluster_id]
+
+    count = app._rpc._transport.write.call_count
+
+    cluster.handle_cluster_request(0, 0, 0, (0, 1))
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)

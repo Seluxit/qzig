@@ -64,8 +64,8 @@ class State(model.Model):
         return tmp
 
     def zdo_command(self, *args):
-        pass
         # LOGGER.debug("ZDO command: %r", args)
+        pass
 
     def attribute_updated(self, attribute, data):
         data = self._parent.handle_report(attribute, data)
@@ -82,7 +82,7 @@ class State(model.Model):
         self.send_put("", self.get_data())
 
     def cluster_command(self, aps_frame, tsn, command_id, args):
-        pass
+        pass  # pragma: nocover
 
     @asyncio.coroutine
     def handle_get(self):
