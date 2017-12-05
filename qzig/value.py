@@ -141,12 +141,16 @@ class Value(model.Model):
             return
 
         if self._bind:
+            if hasattr(self, 'handle_command'):
+                cluster.handle_cluster_request = self.handle_command
+
             st = self.get_state(state.StateType.REPORT)
             if st is None:
                 st = self.get_state(state.StateType.CONTROL)
             elif self._should_bind:
                 yield from self.handle_get()
             cluster.add_listener(st)
+
 
         if self._should_bind:
             LOGGER.debug("Binding to %s" % self.data["name"])

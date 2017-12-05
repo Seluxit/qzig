@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 import qzig.value as value
+import qzig.status as status
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +29,8 @@ class AlarmResetAll(value.Value):
     def handle_command(self, aps_frame, tsn, command_id, args):
         if command_id == 0:
             LOGGER.info("Alarm Report: Code %s on cluster %s", args[0], args[1])
+            if args[1] == 1 and args[0] == 0:
+                self._parent.add_status(status.StatusType.APPLICATION, status.StatusLevel.WARNING, "Low battery")
 
     @asyncio.coroutine
     def handle_control(self, data):

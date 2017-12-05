@@ -82,10 +82,7 @@ class State(model.Model):
         self.send_put("", self.get_data())
 
     def cluster_command(self, aps_frame, tsn, command_id, args):
-        if hasattr(self._parent, 'handle_command'):
-            self._parent.handle_command(aps_frame, tsn, command_id, args)
-        else:
-            LOGGER.debug("No command handler")  # pragma: no cover
+        pass
 
     @asyncio.coroutine
     def handle_get(self):
