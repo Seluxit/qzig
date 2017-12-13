@@ -139,7 +139,6 @@ class Value(model.Model):
 
         if hasattr(self, 'handle_command'):
             LOGGER.debug("Adding handle command")
-            print(cluster)
             cluster.handle_cluster_request = self.handle_command
 
         rep = self.get_state(state.StateType.REPORT)
