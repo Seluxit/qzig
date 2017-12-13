@@ -23,6 +23,9 @@ class Ota(value.Value):
         }
         self.data["string"].max = 50
 
+    def handle_report(self, attribute, data):
+        return data
+
     def handle_command(self, aps_frame, tsn, command_id, args):
         if command_id == 0x01:
             self.handle_query_next_image(*args)
@@ -38,7 +41,8 @@ class Ota(value.Value):
 
         LOGGER.debug(info)
 
-        filename = "ota/%d-%d-%d.upgrade" % (manufacturer_id, image_type, version)
+        name = "%d-%d-%d" % (manufacturer_id, image_type, version)
+        filename = "ota/%s.upgrade" % name
 
         try:
             file = open(filename, 'r')
@@ -48,8 +52,11 @@ class Ota(value.Value):
 
             LOGGER.debug("Upgrading %s to %s (%s) size %s", filename, upgrade, new_version, size)
 
+            self.delayed_report(0, self._attribute, "update started (%s)" % name)
+
             self._cluster.query_next_image_response(Status.SUCCESS, manufacturer_id, image_type, new_version, size)
         except FileNotFoundError:
+            self.delayed_report(0, self._attribute, "no image available (%s)" % name)
             LOGGER.warning("Failed to find %s", filename)
             self._cluster.query_next_image_response(Status.NO_IMAGE_AVAILABLE, 0, 0, 0, 0)
 
@@ -62,6 +69,10 @@ class Ota(value.Value):
             f.seek(offset)
             data = f.read(max_size)
             size = len(data)
+            f.seek(0, os.SEEK_END)
+            total = f.tell()
+            progress = int(offset / total * 100)
+            self.delayed_report(0, self._attribute, str(progress) + "%")
 
             LOGGER.debug("Sending OTA Image Block Response frame - Offset %s Size %s", offset, size)
             self._cluster.image_block_response(Status.SUCCESS, manufacturer_id, image_type, version, offset, data)
