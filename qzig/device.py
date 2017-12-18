@@ -65,15 +65,14 @@ class Device(model.Model):
         if "load" in args and "attr" in args["load"]:
             cid = args["load"]["attr"]["cluster_id"]
             cls = values.get_value_class(cid, self.manufacturer)
-            if isinstance(cls, list) and len(cls) > 1:
-                for c in cls:
-                    try:
-                        index = args["load"]["attr"]["index"]
-                    except KeyError:  # pragma: nocover
-                        index = 0
-                    if c._index == index:
-                        cls = c
-                        break
+
+            try:
+                index = args["load"]["attr"]["index"]
+            except KeyError:  # pragma: nocover
+                index = 0
+
+            if isinstance(cls, list):
+                cls = cls[index]
         elif "cluster_id" in args:
             cid = args["cluster_id"]
             cls = values.get_value_class(cid, self.manufacturer)
