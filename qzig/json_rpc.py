@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import json
+import traceback
 
 import qzig.util
 
@@ -100,6 +101,7 @@ class JsonRPC(asyncio.Protocol):
                 raise e
             except Exception as e:
                 LOGGER.error("Exception: %s (%s)", e, type(e))
+                print(traceback.print_exc())
                 result = str(e)
 
             if result is True:
