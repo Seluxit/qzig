@@ -5,6 +5,7 @@ import bellows.zigbee.zcl.clusters.general as general_clusters
 import bellows.zigbee.zcl.clusters.measurement as measurement_clusters
 import bellows.zigbee.zcl.clusters.homeautomation as homeautomation_clusters
 
+import qzig.state as state
 from qzig.values import kaercher
 
 
@@ -52,8 +53,8 @@ def test_zigbee_device_initialized(app):
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 3)
-    assert '"PUT"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert '"POST"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_zigbee_device_left(app):
@@ -344,7 +345,6 @@ def test_zigbee_kaercher_status_update(app):
     util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
-    print(app._rpc._transport.write.call_args[0][0].decode())
     assert '"data": "1"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
@@ -429,3 +429,28 @@ def test_zigbee_alarm_update(app):
     util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
+
+
+def test_zigbee_poll_checkin(app):
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.PollControl.cluster_id]
+
+    count = app._rpc._transport.write.call_count
+
+    cluster.handle_cluster_request(0, 0, 0, ())
+    util.run_loop()
+
+    s = app._network._children[1]._children[3].get_state(state.StateType.CONTROL)
+    assert s is not None
+
+    s.data["data"] = 10
+
+    cluster.handle_cluster_request(0, 0, 0, ())
+    util.run_loop()
+
+    assert False
+
+    assert app._rpc._transport.write.call_count == count

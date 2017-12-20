@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 import qzig.value as value
+import qzig.state as state
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,8 +32,8 @@ class PollControlCheckInInterval(value.Value):
 
         LOGGER.debug(v)
 
-        if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+        if v[0][0].status == 0:
+            self.delayed_report(0, self._attribute, data)
 
         self.save()
         return True
@@ -121,14 +122,22 @@ class PollControlFastPollTimeout(value.Value):
         self.data["number"].step = 1
         self.data["number"].unit = "quarter seconds"
 
+    def handle_command(self, aps_frame, tsn, command_id, args):
+        if command_id == 0x00:
+            con = self.get_state(state.StateType.CONTROL)
+            if con.data["data"] == "0":
+                self._cluster.checkin_response(0, 0)
+            else:
+                self._cluster.checkin_response(1, int(con.data["data"]))
+
     @asyncio.coroutine
     def handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data})
 
         LOGGER.debug(v)
 
-        if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+        if v[0][0].status == 0:
+            self.delayed_report(0, self._attribute, data)
 
         self.save()
         return True

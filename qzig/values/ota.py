@@ -61,7 +61,8 @@ class Ota(value.Value):
             self._cluster.query_next_image_response(Status.NO_IMAGE_AVAILABLE, 0, 0, 0, 0)
 
     def handle_image_block(self, control, manufacturer_id, image_type, version, offset, max_size, *args):
-        LOGGER.debug("Image Block Request - Control %d Manufactor %d Type %d Version %d Offset %d Max size %d", control, manufacturer_id, image_type, version, offset, max_size)
+        LOGGER.debug("Image Block Request - Control %d Manufactor %d Type %d Version %d Offset %d Max size %d",
+                     control, manufacturer_id, image_type, version, offset, max_size)
 
         filename = "ota/%d-%d-%d.bin" % (manufacturer_id, image_type, version)
         try:

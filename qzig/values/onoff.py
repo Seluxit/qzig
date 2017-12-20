@@ -65,13 +65,13 @@ class OnTime(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        data = int(data) * 10
-        v = yield from self._cluster.write_attributes({self._attribute: data})
+        raw_data = int(data) * 10
+        v = yield from self._cluster.write_attributes({self._attribute: raw_data})
 
         LOGGER.debug("%s: %r", self.data["name"], v)
 
-        if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+        if v[0][0].status == 0:
+            self.delayed_report(0, self._attribute, data)
 
         self.save()
         return True

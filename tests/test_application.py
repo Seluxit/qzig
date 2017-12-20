@@ -142,7 +142,6 @@ def test_gateway_load_old(app, tmpdir, store):
     assert len(((store + "/device").listdir()[0] + "/value").listdir()) == 3
 
     path = ((store + "/device").listdir()[0] + "/value").listdir()[0]
-    print(path)
     shutil.rmtree(str(path))
 
     util._startup(app)

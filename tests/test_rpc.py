@@ -194,7 +194,7 @@ def test_state_on_time_change(app):
     assert app._rpc._transport.write.call_count == (count + 2)
 
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
-    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert '"data": "1"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_state_on_timeout_change(app):

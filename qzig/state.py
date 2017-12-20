@@ -94,5 +94,7 @@ class State(model.Model):
         if self.type == StateType.REPORT:
             return "Report state can't be changed"
 
+        self.data["data"] = str(data["data"])
+
         res = yield from self._parent.handle_control(data["data"])
         return res

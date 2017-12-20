@@ -65,7 +65,6 @@ class MockCluster():
 
     @asyncio.coroutine
     def read_attributes(self, *args, **kwargs):
-        print(args, kwargs)
         self.reply_count += 1
         if self.cluster_id == 6:
             return [{0: 0}, 0]
@@ -83,8 +82,12 @@ class MockCluster():
 
     @asyncio.coroutine
     def write_attributes(self, attributes, is_report=False):
-        print("write attributes")
-        return [0, 0]
+        if is_report:
+            return [0, 0]
+        else:
+            res = bellows.zigbee.zcl.foundation.WriteAttributesStatusRecord()
+            res.status = 0
+            return [[res]]
 
     @asyncio.coroutine
     def leave(self):
@@ -116,6 +119,10 @@ class MockCluster():
         if self._cb is None:
             self._cb = []
         self._cb.append(obj)
+
+    @asyncio.coroutine
+    def checkin_response(self, fast, timeout):
+        pass
 
     @asyncio.coroutine
     def dummy(self, *args, manufacturer=None):
