@@ -25,6 +25,7 @@ setup(
     ],
     tests_require=[
         'pytest',
+        'pytest-html'
     ],
     platforms=[
         'Linux'
