@@ -134,12 +134,12 @@ class MockCluster():
 
 def run_loop():
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.01))
+    loop.run_until_complete(asyncio.sleep(.00001))
 
 
 @asyncio.coroutine
 def _delayed_reply(app, server_devices):
-    yield from asyncio.sleep(0.01)
+    yield from asyncio.sleep(.00001)
     data = {
         "type": "urn:seluxit:xml:bastard:device-1.1",
         ":type": "urn:seluxit:xml:bastard:idlist-1.0",
@@ -151,7 +151,7 @@ def _delayed_reply(app, server_devices):
         "result": data
     }
     app._rpc.data_received(json.dumps(rpc).encode())
-    yield from asyncio.sleep(0.01)
+    yield from asyncio.sleep(.00001)
     app._rpc.data_received(b'{"jsonrpc":"2.0","id":1,"result":true}')
 
 
