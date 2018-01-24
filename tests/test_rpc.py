@@ -3,6 +3,7 @@ import tests.util as util
 import qzig.state as state
 
 import bellows.zigbee.zcl.clusters.general as general_clusters
+from qzig.values import kaercher
 
 
 def test_wrong_service(app):
@@ -603,6 +604,106 @@ def test_get_value(app):
 
     id = s.id
     rpc = util._rpc_get("state", id)
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_kaercher_fallback_enable_flag_change(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_kaercher_fallback_online_flag_change(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_kaercher_fallback_start_time_change(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[2].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_kaercher_fallback_duration_change(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[3].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 2)
+    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_kaercher_fallback_interval_change(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    s = app._network._children[0]._children[4].get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
     app._rpc.data_received(rpc.encode())
 
     count = app._rpc._transport.write.call_count

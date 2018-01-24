@@ -451,6 +451,4 @@ def test_zigbee_poll_checkin(app):
     cluster.handle_cluster_request(0, 0, 0, ())
     util.run_loop()
 
-    assert False
-
     assert app._rpc._transport.write.call_count == count

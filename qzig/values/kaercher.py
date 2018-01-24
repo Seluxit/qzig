@@ -1,4 +1,5 @@
 import logging
+import asyncio
 
 import qzig.value as value
 import bellows.types as t
@@ -117,6 +118,18 @@ class FallbackEnable(value.Value):
         self.data["number"].step = 1
         self.data["number"].unit = "Boolean"
 
+    @asyncio.coroutine
+    def handle_control(self, data):
+        v = yield from self._cluster.enable_flag(int(data))
+
+        LOGGER.debug(v)
+
+        if v[1] == 0:
+            self.delayed_report(0, self._attribute, v[0])
+
+        self.save()
+        return True
+
 
 class FallbackOnline(value.Value):
     _attribute = 1
@@ -136,6 +149,18 @@ class FallbackOnline(value.Value):
         self.data["number"].max = 1
         self.data["number"].step = 1
         self.data["number"].unit = "Boolean"
+
+    @asyncio.coroutine
+    def handle_control(self, data):
+        v = yield from self._cluster.online_flag(int(data))
+
+        LOGGER.debug(v)
+
+        if v[1] == 0:
+            self.delayed_report(0, self._attribute, v[0])
+
+        self.save()
+        return True
 
 
 class FallbackStartTime(value.Value):
@@ -157,6 +182,18 @@ class FallbackStartTime(value.Value):
         self.data["number"].step = 1
         self.data["number"].unit = "minute"
 
+    @asyncio.coroutine
+    def handle_control(self, data):
+        v = yield from self._cluster.start_time(int(data))
+
+        LOGGER.debug(v)
+
+        if v[1] == 0:
+            self.delayed_report(0, self._attribute, v[0])
+
+        self.save()
+        return True
+
 
 class FallbackDuration(value.Value):
     _attribute = 3
@@ -177,6 +214,18 @@ class FallbackDuration(value.Value):
         self.data["number"].step = 1
         self.data["number"].unit = "minute"
 
+    @asyncio.coroutine
+    def handle_control(self, data):
+        v = yield from self._cluster.duration(int(data))
+
+        LOGGER.debug(v)
+
+        if v[1] == 0:
+            self.delayed_report(0, self._attribute, v[0])
+
+        self.save()
+        return True
+
 
 class FallbackInterval(value.Value):
     _attribute = 4
@@ -196,3 +245,15 @@ class FallbackInterval(value.Value):
         self.data["number"].max = 7
         self.data["number"].step = 1
         self.data["number"].unit = "Day"
+
+    @asyncio.coroutine
+    def handle_control(self, data):
+        v = yield from self._cluster.interval(int(data))
+
+        LOGGER.debug(v)
+
+        if v[1] == 0:
+            self.delayed_report(0, self._attribute, v[0])
+
+        self.save()
+        return True
