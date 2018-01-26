@@ -120,12 +120,15 @@ class FallbackEnable(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.enable_flag(int(data))
+        if(data == "0"):
+            v = yield from self._cluster.write_attributes({self._attribute: False})
+        else:
+            v = yield from self._cluster.write_attributes({self._attribute: True})
 
         LOGGER.debug(v)
 
-        if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+        if v[0][0].status == 0:
+            self.delayed_report(0, self._attribute, data)
 
         self.save()
         return True
@@ -152,12 +155,15 @@ class FallbackOnline(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.online_flag(int(data))
+        if(data == "0"):
+            v = yield from self._cluster.write_attributes({self._attribute: False})
+        else:
+            v = yield from self._cluster.write_attributes({self._attribute: True})
 
         LOGGER.debug(v)
 
-        if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+        if v[0][0].status == 0:
+            self.delayed_report(0, self._attribute, data)
 
         self.save()
         return True
@@ -184,12 +190,12 @@ class FallbackStartTime(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.start_time(int(data))
+        v = yield from self._cluster.write_attributes({self._attribute: data})
 
         LOGGER.debug(v)
 
-        if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+        if v[0][0].status == 0:
+            self.delayed_report(0, self._attribute, data)
 
         self.save()
         return True
@@ -216,12 +222,12 @@ class FallbackDuration(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.duration(int(data))
+        v = yield from self._cluster.write_attributes({self._attribute: data})
 
         LOGGER.debug(v)
 
-        if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+        if v[0][0].status == 0:
+            self.delayed_report(0, self._attribute, data)
 
         self.save()
         return True
@@ -248,12 +254,12 @@ class FallbackInterval(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.interval(int(data))
+        v = yield from self._cluster.write_attributes({self._attribute: data})
 
         LOGGER.debug(v)
 
-        if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+        if v[0][0].status == 0:
+            self.delayed_report(0, self._attribute, data)
 
         self.save()
         return True
