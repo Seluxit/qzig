@@ -79,6 +79,14 @@ class JsonRPC(asyncio.Protocol):
 
         if pending[1] is None:
             return
+
+        # parse string to json
+        if(type(res) is str):
+            try:
+                res = json.loads(res)
+            except json.decoder.JSONDecodeError as e:  # pragma: nocover
+                pass
+
         pending[1].set_result(res)
 
     def _handle_request(self, rpc):

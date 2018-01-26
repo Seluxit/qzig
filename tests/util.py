@@ -148,7 +148,7 @@ def _delayed_reply(app, server_devices):
     rpc = {
         "jsonrpc": "2.0",
         "id": 2,
-        "result": data
+        "result": json.dumps(data)
     }
     app._rpc.data_received(json.dumps(rpc).encode())
     yield from asyncio.sleep(.00001)
