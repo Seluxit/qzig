@@ -4,6 +4,7 @@ import logging
 
 import bellows.types as t
 import bellows.zigbee.util as util
+import bellows.zigbee.device as bellows_device
 import qzig.zigbee as zigbee
 import qzig.json_rpc as json_rpc
 import qzig.network as network
@@ -186,6 +187,13 @@ class Application():
             val.delayed_report(0, 0, 0)
         else:
             LOGGER.debug("Device tried to join, setting install code")
+
+            zb_dev = self._zb.controller.get_device(device.ieee)
+            if zb_dev is not None:
+                LOGGER.debug("Cleaning up old device, so that we can include it")
+                zb_dev.initializing = False
+                zb_dev.status = bellows_device.Status.NEW
+
             async_fun = getattr(asyncio, "ensure_future", asyncio.async)
             async_fun(self._zb.controller.permit_with_key(device.ieee, self._installcode, self._permit_timeout))
             self._installcode = None
