@@ -120,10 +120,7 @@ class FallbackEnable(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        if(data == "0"):
-            v = yield from self._cluster.write_attributes({self._attribute: False})
-        else:
-            v = yield from self._cluster.write_attributes({self._attribute: True})
+        v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True})
 
         LOGGER.debug(v)
 
@@ -155,10 +152,7 @@ class FallbackOnline(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        if(data == "0"):
-            v = yield from self._cluster.write_attributes({self._attribute: False})
-        else:
-            v = yield from self._cluster.write_attributes({self._attribute: True})
+        v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True})
 
         LOGGER.debug(v)
 
