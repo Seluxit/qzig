@@ -98,11 +98,14 @@ class Device(model.Model):
         return self.attr["ieee"]
 
     @asyncio.coroutine
-    def parse_device(self, dev):
+    def parse_device(self, dev, post=False):
         self._dev = dev
         self.attr["ieee"] = str(dev.ieee)
         if self.data["version"] == "N/A":
             yield from self.read_device_info()
+
+        if post:
+            self.send_post("", self.get_data())
 
         for e_id in self._dev.endpoints:
             endpoint = self._dev.endpoints[e_id]
@@ -111,24 +114,24 @@ class Device(model.Model):
 
             for c_id in endpoint.in_clusters:
                 cluster = endpoint.in_clusters[c_id]
-                yield from self._handle_cluster(endpoint, e_id, c_id, cluster)
+                yield from self._handle_cluster(endpoint, e_id, c_id, cluster, post)
 
             for c_id in endpoint.out_clusters:
                 cluster = endpoint.out_clusters[c_id]
-                yield from self._handle_cluster(endpoint, e_id, c_id, cluster)
+                yield from self._handle_cluster(endpoint, e_id, c_id, cluster, post)
 
         dev.zdo.add_listener(self)
 
         self.save()
 
     @asyncio.coroutine
-    def _handle_cluster(self, endpoint, e_id, c_id, cluster):
-        val = self.add_value(e_id, c_id)
+    def _handle_cluster(self, endpoint, e_id, c_id, cluster, post=False):
+        val = self.add_value(e_id, c_id, post)
         for v in val:
             yield from v.parse_cluster(endpoint, cluster)
             LOGGER.debug("Adding %s value", v.data["name"])
 
-    def add_value(self, endpoint_id, cluster_id):
+    def add_value(self, endpoint_id, cluster_id, post=False):
         values = []
         real = self.create_child(endpoint_id=endpoint_id, cluster_id=cluster_id)
         for r in real:
@@ -141,6 +144,8 @@ class Device(model.Model):
                 self._children.append(val)
             val._parent = self
             values.append(val)
+            if post:
+                val.send_post("", val.get_data())
 
         return values
 

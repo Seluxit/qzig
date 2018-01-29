@@ -43,10 +43,11 @@ class Network(model.Model):
         else:
             d._parent = self
 
-        yield from d.parse_device(dev)
+        yield from d.parse_device(dev, post)
 
         if post:
             d.send_post("", d.get_data())
+
         return d
 
     def add_gateway(self):

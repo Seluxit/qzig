@@ -53,7 +53,7 @@ def test_zigbee_device_initialized(app):
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 1)
+    assert app._rpc._transport.write.call_count == (count + 8)
     assert '"POST"' in app._rpc._transport.write.call_args[0][0].decode()
 
 

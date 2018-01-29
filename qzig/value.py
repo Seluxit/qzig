@@ -125,8 +125,6 @@ class Value(model.Model):
             self.data["number"] = ValueNumberType(self.data["number"])
         elif "string" in self.data:
             self.data["string"] = ValueStringType(self.data["string"])
-        # elif "set" in self.data:
-        #    self.data["set"] = ValueSetType(self.data["set"])
         # elif "blob" in self.data:
         #     self.data["blob"] = ValueBlobType(self.data["blob"])
         # elif "xml" in self.data:
