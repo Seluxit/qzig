@@ -37,6 +37,8 @@ class ControllerMock():
     def permit_with_key(self, ieee, installcode, timeout):
         self._permit_with_key_count += 1
 
+    def get_device(self, ieee):
+        return None
 
 class MockDevice():
     def __init__(self, ieee, nwk):

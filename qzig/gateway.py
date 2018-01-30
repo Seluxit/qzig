@@ -153,8 +153,8 @@ class NetworkInstallKey(value.Value):
             LOGGER.error(e)
             return "Invalid hex data"
 
-        if len(data) < 10:
-            return "Install code has to be minimal 10 charaters, not %d" % len(data)
+        if len(data) < 8:
+            return "Install code has to be minimal 8 charaters, not %d" % len(data)
 
         v = yield from self.permit_with_key(None, data, 180)
         LOGGER.debug(v)
