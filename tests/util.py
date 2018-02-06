@@ -83,7 +83,7 @@ class MockCluster():
             return [{args[0][0]: 0}, 0]
 
     @asyncio.coroutine
-    def write_attributes(self, attributes, is_report=False):
+    def write_attributes(self, attributes, is_report=False, manufacturer=None):
         if is_report:
             return [0, 0]
         else:
