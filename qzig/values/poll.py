@@ -30,10 +30,11 @@ class PollControlCheckInInterval(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data})
 
-        LOGGER.debug(v)
-
         if v[0][0].status == 0:
             self.delayed_report(0, self._attribute, data)
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -62,10 +63,11 @@ class PollControlLongPollInterval(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.set_long_poll_interval(data)
 
-        LOGGER.debug(v)
-
         if v[1] == 0:
             self.delayed_report(0, self._attribute, v[0])
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -94,10 +96,11 @@ class PollControlShortPollInterval(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.set_short_poll_interval(data)
 
-        LOGGER.debug(v)
-
         if v[1] == 0:
             self.delayed_report(0, self._attribute, v[0])
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -134,10 +137,11 @@ class PollControlFastPollTimeout(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data})
 
-        LOGGER.debug(v)
-
         if v[0][0].status == 0:
             self.delayed_report(0, self._attribute, data)
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -166,10 +170,11 @@ class PollControlFastPollStop(value.Value):
     def handle_control(self, data=None):
         v = yield from self._cluster.fast_poll_stop()
 
-        LOGGER.debug(v)
-
         if v[1] == 0:
             self.delayed_report(0, self._attribute, v[0])
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True

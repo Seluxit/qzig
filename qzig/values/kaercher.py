@@ -126,10 +126,11 @@ class FallbackEnable(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True}, manufacturer=self._manufacturer)
 
-        LOGGER.debug(v)
-
         if v[0][0].status == 0:
             self.delayed_report(0, self._attribute, data)
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -159,10 +160,11 @@ class FallbackOnline(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True}, manufacturer=self._manufacturer)
 
-        LOGGER.debug(v)
-
         if v[0][0].status == 0:
             self.delayed_report(0, self._attribute, data)
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -192,10 +194,11 @@ class FallbackStartTime(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
-        LOGGER.debug(v)
-
         if v[0][0].status == 0:
             self.delayed_report(0, self._attribute, data)
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -225,10 +228,11 @@ class FallbackDuration(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
-        LOGGER.debug(v)
-
         if v[0][0].status == 0:
             self.delayed_report(0, self._attribute, data)
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -258,10 +262,11 @@ class FallbackInterval(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
-        LOGGER.debug(v)
-
         if v[0][0].status == 0:
             self.delayed_report(0, self._attribute, data)
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True

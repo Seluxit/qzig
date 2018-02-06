@@ -36,6 +36,6 @@ class AlarmResetAll(value.Value):
     def handle_control(self, data):
         v = yield from self._cluster.reset_all()
 
-        LOGGER.debug(v)
+        LOGGER.debug("%s: %r", self.data["name"], v)
 
         return True

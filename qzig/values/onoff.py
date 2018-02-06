@@ -34,10 +34,11 @@ class OnOff(value.Value):
         else:
             v = yield from self._cluster.off()
 
-        LOGGER.debug(v)
-
         if v[1] == 0:
             self.delayed_report(0, self._attribute, v[0])
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -68,10 +69,11 @@ class OnTime(value.Value):
         raw_data = int(data) * 10
         v = yield from self._cluster.write_attributes({self._attribute: raw_data})
 
-        LOGGER.debug("%s: %r", self.data["name"], v)
-
         if v[0][0].status == 0:
             self.delayed_report(0, self._attribute, data)
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
@@ -105,10 +107,11 @@ class OnTimeout(value.Value):
         else:
             v = yield from self._cluster.on_with_timed_off()
 
-        LOGGER.debug(v)
-
         if v[1] == 0:
             self.delayed_report(0, self._attribute, v[0])
+        else:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
 
         self.save()
         return True
