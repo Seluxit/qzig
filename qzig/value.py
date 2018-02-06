@@ -200,7 +200,7 @@ class Value(model.Model):
     @asyncio.coroutine
     def handle_get(self):
         if hasattr(self, '_attribute'):
-            v = yield from self._cluster.read_attributes([self._attribute], allow_cache=False)
+            v = yield from self._cluster.read_attributes([self._attribute], allow_cache=False, manufacturer=self._manufacturer)
             if v and self._attribute in v[0]:
                 self.delayed_report(0, self._attribute, v[0][self._attribute])
                 return True

@@ -40,6 +40,7 @@ class DeviceState(value.Value):
     _bind = True
     _attribute = 0
     _singleton = True
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
@@ -61,6 +62,7 @@ class DeviceState(value.Value):
 class DeviceStateOtaUpdate(value.Value):
     _attribute = 1
     _singleton = True
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
@@ -81,6 +83,7 @@ class DeviceStateOtaUpdate(value.Value):
 
 class DeviceStateValueError(value.Value):
     _attribute = 0x0100
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
@@ -101,6 +104,7 @@ class DeviceStateValueError(value.Value):
 
 class FallbackEnable(value.Value):
     _attribute = 0
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
@@ -120,7 +124,7 @@ class FallbackEnable(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True})
+        v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True}, manufacturer=self._manufacturer)
 
         LOGGER.debug(v)
 
@@ -133,6 +137,7 @@ class FallbackEnable(value.Value):
 
 class FallbackOnline(value.Value):
     _attribute = 1
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
@@ -152,7 +157,7 @@ class FallbackOnline(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True})
+        v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True}, manufacturer=self._manufacturer)
 
         LOGGER.debug(v)
 
@@ -165,6 +170,7 @@ class FallbackOnline(value.Value):
 
 class FallbackStartTime(value.Value):
     _attribute = 2
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
@@ -184,7 +190,7 @@ class FallbackStartTime(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.write_attributes({self._attribute: data})
+        v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
         LOGGER.debug(v)
 
@@ -197,6 +203,7 @@ class FallbackStartTime(value.Value):
 
 class FallbackDuration(value.Value):
     _attribute = 3
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
@@ -216,7 +223,7 @@ class FallbackDuration(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.write_attributes({self._attribute: data})
+        v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
         LOGGER.debug(v)
 
@@ -229,6 +236,7 @@ class FallbackDuration(value.Value):
 
 class FallbackInterval(value.Value):
     _attribute = 4
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
@@ -248,7 +256,7 @@ class FallbackInterval(value.Value):
 
     @asyncio.coroutine
     def handle_control(self, data):
-        v = yield from self._cluster.write_attributes({self._attribute: data})
+        v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
         LOGGER.debug(v)
 
