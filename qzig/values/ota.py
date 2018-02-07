@@ -2,7 +2,7 @@ import logging
 import os
 
 import qzig.value as value
-from bellows.zigbee.zcl.foundation import Status
+from zigpy.zcl.foundation import Status
 
 LOGGER = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
-import bellows.zigbee.zcl.clusters.general as general_clusters
-import bellows.zigbee.zcl.clusters.measurement as measurement_clusters
-import bellows.zigbee.zcl.clusters.homeautomation as homeautomation_clusters
+import zigpy.zcl.clusters.general as general_clusters
+import zigpy.zcl.clusters.measurement as measurement_clusters
+import zigpy.zcl.clusters.homeautomation as homeautomation_clusters
 
 from qzig.values import onoff, identify, temperature, humidity, diagnostics, ota, power, poll, alarm, kaercher
 

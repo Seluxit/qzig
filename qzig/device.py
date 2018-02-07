@@ -2,8 +2,8 @@ import asyncio
 import logging
 import enum
 
-import bellows.zigbee.zcl.clusters.general as general_clusters
-import bellows.zigbee.exceptions as zigbee_exp
+import zigpy.zcl.clusters.general as general_clusters
+import zigpy.exceptions as zigbee_exp
 import qzig.model as model
 import qzig.status as status
 import qzig.values as values

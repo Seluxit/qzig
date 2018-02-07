@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="qzig",
-    version="0.0.4",
+    version="0.1.0",
     author="Seluxit ApS",
     author_email="info@seluxit.com",
     maintainer="Andreas Bomholtz",
@@ -18,7 +18,8 @@ setup(
         'console_scripts': ['qzig=qzig.main:main'],
     },
     install_requires=[
-        'bellows==0.4.0',
+        'bellows==0.5.0',
+        'zigpy==0.0.1'
     ],
     requires=[
         'bellows',

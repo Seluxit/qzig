@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 import qzig.value as value
-import bellows.types as t
+import zigpy.types as t
 
 LOGGER = logging.getLogger(__name__)
 

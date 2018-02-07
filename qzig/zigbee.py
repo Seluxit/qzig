@@ -4,6 +4,7 @@ import serial
 import sys
 
 import bellows.zigbee.application as zigbee
+import zigpy.endpoint as endpoint
 import bellows.ezsp
 
 LOGGER = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ class ZigBee():
             for epid, ep in dev.endpoints.items():
                 if epid == 0:
                     continue
-                if ep.status == bellows.zigbee.endpoint.Status.NEW:
+                if ep.status == endpoint.Status.NEW:
                     LOGGER.info("    %s: Uninitialized")  # pragma: no cover
                 else:
                     LOGGER.info(

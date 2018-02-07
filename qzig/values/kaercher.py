@@ -2,8 +2,8 @@ import logging
 import asyncio
 
 import qzig.value as value
-import bellows.types as t
-from bellows.zigbee.zcl import Cluster
+import zigpy.types as t
+from zigpy.zcl import Cluster
 
 LOGGER = logging.getLogger(__name__)
 

@@ -2,9 +2,9 @@ import sys
 import asyncio
 import logging
 
-import bellows.types as t
-import bellows.zigbee.util as util
-import bellows.zigbee.device as bellows_device
+import zigpy.types as t
+import zigpy.util as util
+import zigpy.device as zigpy_device
 import qzig.zigbee as zigbee
 import qzig.json_rpc as json_rpc
 import qzig.network as network
@@ -163,7 +163,7 @@ class Application():
     @asyncio.coroutine
     def delete_device(self, ieee):
         if type(ieee) is str:
-            ieee = t.EmberEUI64([t.uint8_t(p, base=16) for p in ieee.split(':')])
+            ieee = t.EUI64([t.uint8_t(p, base=16) for p in ieee.split(':')])
         v = yield from self._zb.controller.remove(ieee)
         return v
 
@@ -192,7 +192,7 @@ class Application():
             if zb_dev is not None:
                 LOGGER.debug("Cleaning up old device, so that we can include it")
                 zb_dev.initializing = False
-                zb_dev.status = bellows_device.Status.NEW
+                zb_dev.status = zigpy_device.Status.NEW
 
             async_fun = getattr(asyncio, "ensure_future", asyncio.async)
             async_fun(self._zb.controller.permit_with_key(device.ieee, self._installcode, self._permit_timeout))
