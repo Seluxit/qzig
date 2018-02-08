@@ -117,6 +117,8 @@ class Device(model.Model):
                 yield from self._handle_cluster(endpoint, e_id, c_id, cluster, post)
 
             for c_id in endpoint.out_clusters:
+                if c_id in endpoint.in_clusters:
+                    continue
                 cluster = endpoint.out_clusters[c_id]
                 yield from self._handle_cluster(endpoint, e_id, c_id, cluster, post)
 
@@ -166,7 +168,7 @@ class Device(model.Model):
             endp = self._dev.endpoints[e_id]
             if general_clusters.Basic.cluster_id not in endp.in_clusters:
                 LOGGER.info("Device %s do not have Basic cluster on endpoint %s",
-                             str(self._dev.ieee), e_id)
+                            str(self._dev.ieee), e_id)
                 continue
             cluster = endp.in_clusters[general_clusters.Basic.cluster_id]
 

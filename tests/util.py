@@ -40,6 +40,7 @@ class ControllerMock():
     def get_device(self, ieee):
         return None
 
+
 class MockDevice():
     def __init__(self, ieee, nwk):
         self.ieee = ieee
