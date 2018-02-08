@@ -165,7 +165,7 @@ class Device(model.Model):
 
             endp = self._dev.endpoints[e_id]
             if general_clusters.Basic.cluster_id not in endp.in_clusters:
-                LOGGER.error("Device %s do not have Basic cluster on endpoint %s",
+                LOGGER.info("Device %s do not have Basic cluster on endpoint %s",
                              str(self._dev.ieee), e_id)
                 continue
             cluster = endp.in_clusters[general_clusters.Basic.cluster_id]
@@ -187,9 +187,12 @@ class Device(model.Model):
                     return
                 self._handle_attributes_reply(v, self._handle_kaercher_attributes)
 
+            # Only read from one basic cluster
+            break
+
     def _handle_attributes_reply(self, attr, handler=None):
         if attr[1]:
-            LOGGER.error("Failed to get attributes (%s) from device %s", attr[1], str(self._dev.ieee))
+            LOGGER.warning("Device %s do not have attributes (%s)", str(self._dev.ieee), attr[1])
         if attr[0]:
             LOGGER.debug("Got attributes (%s) from device %s", attr[0], str(self._dev.ieee))
             if handler is None:
