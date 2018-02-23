@@ -82,6 +82,7 @@ class DeviceStateOtaUpdate(value.Value):
 
 
 class DeviceStateValueError(value.Value):
+    _bind = True
     _attribute = 0x0100
     _manufacturer = 0x122C
 
