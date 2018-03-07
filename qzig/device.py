@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PowerSource(enum.Enum):
+    """Enum for Power source"""
     UNKNOWN = 0x00
     SINGLE_PHASE_MAINS = 0x01
     THREE_PHASE_MAINS = 0x02
@@ -29,10 +30,15 @@ class PowerSource(enum.Enum):
 
 
 class Device(model.Model):
+    """Class to map a zigbee device to a QZig device"""
+
+    _child_name = "value"
+    _name = "device"
+
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:device-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "",
             "manufacturer": "",
             "product": "",
@@ -49,22 +55,13 @@ class Device(model.Model):
             "ieee": ""
         }
 
-    @property
-    def name(self):
-        return "device"
-
-    @property
-    def child_name(self):
-        return "value"
-
-    @property
-    def manufacturer(self):
+    def _get_manufacturer(self):
         return self.data["manufacturer"]
 
-    def create_child(self, **args):
+    def _create_child(self, **args):
         if "load" in args and "attr" in args["load"]:
             cid = args["load"]["attr"]["cluster_id"]
-            cls = values.get_value_class(cid, self.manufacturer)
+            cls = values._get_value_class(cid, self._get_manufacturer())
 
             try:
                 index = args["load"]["attr"]["index"]
@@ -75,7 +72,7 @@ class Device(model.Model):
                 cls = cls[index]
         elif "cluster_id" in args:
             cid = args["cluster_id"]
-            cls = values.get_value_class(cid, self.manufacturer)
+            cls = values._get_value_class(cid, self._get_manufacturer())
 
         index = 0
         vals = []
@@ -105,7 +102,7 @@ class Device(model.Model):
             yield from self.read_device_info()
 
         if post:
-            self.send_post("", self.get_data())
+            self._send_post("", self.get_data())
 
         for e_id in self._dev.endpoints:
             endpoint = self._dev.endpoints[e_id]
@@ -124,7 +121,7 @@ class Device(model.Model):
 
         dev.zdo.add_listener(self)
 
-        self.save()
+        self._save()
 
     @asyncio.coroutine
     def _handle_cluster(self, endpoint, e_id, c_id, cluster, post=False):
@@ -135,7 +132,7 @@ class Device(model.Model):
 
     def add_value(self, endpoint_id, cluster_id, post=False):
         values = []
-        real = self.create_child(endpoint_id=endpoint_id, cluster_id=cluster_id)
+        real = self._create_child(endpoint_id=endpoint_id, cluster_id=cluster_id)
         for r in real:
             val = self.get_value(endpoint_id, cluster_id, r.index)
             if val is None:
@@ -147,7 +144,7 @@ class Device(model.Model):
             val._parent = self
             values.append(val)
             if post:
-                val.send_post("", val.get_data())
+                val._send_post("", val.get_data())
 
         return values
 
@@ -234,18 +231,18 @@ class Device(model.Model):
         LOGGER.debug("%s | New %s status: %s", level, type, message)
         stat = status.Status(self, type, level, message)
         self.data["status"].insert(0, stat)
-        stat.send_post("", stat.get_data())
+        stat._send_post("", stat.get_data())
 
     def permit_duration(self, duration):
         pass
 
-    def get_raw_data(self):
+    def _get_raw_data(self):
         tmp = self.data
         tmp["value"] = []
         return tmp
 
     def get_data(self):
-        tmp = self.get_raw_data()
+        tmp = self._get_raw_data()
         for v in self._children:
             d = v.get_data()
             if d is not None:
@@ -260,13 +257,13 @@ class Device(model.Model):
     def delete(self):
         self._remove_files()
 
-        v = yield from self.delete_device(self.ieee)
+        v = yield from self._delete_device(self.ieee)
         LOGGER.debug(v)
 
         return True
 
     @asyncio.coroutine
-    def bind(self, endpoint_id, cluster_id):
+    def _do_bind(self, endpoint_id, cluster_id):
         try:
             yield from self._dev.zdo.bind(endpoint_id, cluster_id)
         except Exception:  # pragma: no cover

@@ -10,14 +10,27 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ZigBee():
+    """Class to talk to the ZigBee network using bellows"""
 
     def __init__(self, application, device, database_file):
+        """Creates a new ZigBee handler
+
+        :param application: The applition the ZigBee should link with
+        :param device: The serial device it should connect to
+        :param database_file: The database file where it should store the information about the devices
+
+        """
         self.app = application
         self.dev = device
         self.db = database_file
 
     @asyncio.coroutine
     def connect(self, baudrate):
+        """Connect to the ZigBee using baudrate
+
+        :param baudrate: The baudrate to connect with
+
+        """
         LOGGER.debug("Connecting to ZigBee...")
         s = bellows.ezsp.EZSP()
         try:
@@ -71,10 +84,23 @@ class ZigBee():
                             ))
 
     def close(self):
+        """Close the serial connection to ZigBee"""
         self.controller._ezsp.close()
 
     def devices(self):
+        """Get all the devices
+
+        :returns: All the ZigBee devices
+        :rtype: Array
+
+        """
         return self.controller.devices.items()
 
     def ieees(self):
+        """Get all the device IEEE
+
+        :returns: All the device IEEE
+        :rtype: Array
+
+        """
         return self.controller.devices.keys()

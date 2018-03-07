@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import enum
-import datetime
 
 import qzig.model as model
 
@@ -9,11 +8,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 class StateType(enum.Enum):
+    """Enum for State Type"""
     REPORT = "Report"
     CONTROL = "Control"
 
 
 class StateStatus(enum.Enum):
+    """Enum for State Status"""
     SEND = "Send"
     PENDING = "Pending"
     FAILED = "Failed"
@@ -22,6 +23,13 @@ class StateStatus(enum.Enum):
 class State(model.Model):
 
     def __init__(self, parent, state_type=None, load=None):
+        """Creates a new State
+
+        :param parent: The parent of the state
+        :param state_type: The state type
+        :param load: Data it should load
+
+        """
         self._parent = parent
         self.attr = {}
         self._children = []
@@ -34,10 +42,10 @@ class State(model.Model):
     def _init(self, state_type):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:state-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "type": state_type,
             "status": StateStatus.SEND,
-            "timestamp": self.get_timestamp(),
+            "timestamp": self._get_timestamp(),
             "data": "0"
         }
 
@@ -49,52 +57,59 @@ class State(model.Model):
 
     @property
     def type(self):
+        """Returns the type of the state
+
+        :returns: The type of the state
+        :rtype: String
+
+        """
         return self.data["type"]
 
-    def get_timestamp(self):
-        t = str(datetime.datetime.utcnow()).split('.')[0]
-        return t.replace(" ", "T") + 'Z'
-
-    def get_raw_data(self):
+    def _get_raw_data(self):
         tmp = self.data
         return tmp
 
-    def get_data(self):
-        tmp = self.get_raw_data()
-        return tmp
-
     def zdo_command(self, *args):
-        # LOGGER.debug("ZDO command: %r", args)
+        """zdo command stub"""
         pass
 
     def attribute_updated(self, attribute, data):
-        data = self._parent.handle_report(attribute, data)
+        """Called when an attribute is updated
+
+        :param attribute: The id of the attribute
+        :param data: The new attribute data
+
+        """
+        data = self._parent._handle_report(attribute, data)
         if data is None:
             return
 
         LOGGER.debug("Attribute %s change to %s on %s", attribute, data, self._parent.data["name"])
 
-        self.data["timestamp"] = self.get_timestamp()
+        self.data["timestamp"] = self._get_timestamp()
         self.data["data"] = str(data)
 
-        self.save()
+        self._save()
 
-        self.send_put("", self.get_data())
+        self._send_put("", self.get_data())
 
     def cluster_command(self, aps_frame, tsn, command_id, args):
+        """Cluster Command handler stub"""
         pass  # pragma: nocover
 
     @asyncio.coroutine
-    def handle_get(self):
-        res = yield from self._parent.handle_get()
-        return res
-
-    @asyncio.coroutine
     def change_state(self, data):
+        """Handle a request to change state
+
+        :param data: The new state
+        :returns: The result of the state change
+        :rtype: String
+
+        """
         if self.type == StateType.REPORT:
             return "Report state can't be changed"
 
         self.data["data"] = str(data["data"])
 
-        res = yield from self._parent.handle_control(data["data"])
+        res = yield from self._parent._handle_control(data["data"])
         return res

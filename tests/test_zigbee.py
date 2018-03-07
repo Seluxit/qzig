@@ -443,7 +443,7 @@ def test_zigbee_poll_checkin(app):
     cluster.handle_cluster_request(0, 0, 0, ())
     util.run_loop()
 
-    s = app._network._children[1]._children[3].get_state(state.StateType.CONTROL)
+    s = app._network._children[1]._children[3]._get_state(state.StateType.CONTROL)
     assert s is not None
 
     s.data["data"] = 10

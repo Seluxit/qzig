@@ -16,6 +16,12 @@ LOGGER = logging.getLogger(__name__)
 class Application():
 
     def __init__(self, device, network_id, **options):
+        """Inits the QZig appliction with the device it should connect to
+
+        :param device: The serial device to connect the ZigBee to
+        :param network_id: The network id to use
+
+        """
         self._dev = device
         self._network_id = network_id
         self._network = network.Network(self, network_id)
@@ -54,19 +60,22 @@ class Application():
 
     @asyncio.coroutine
     def init(self):
-        yield from self.connect()
+        """Setup the application, by connection to ZigBee and load old data"""
+
+        yield from self._connect()
         yield from self._load()
         self._send_full_network()
         yield from self._clean_server_devices()
 
     @asyncio.coroutine
-    def connect(self):
+    def _connect(self):
         self._zb = zigbee.ZigBee(self, self._dev, self._database)
         yield from self._zb.connect(self._baudrate)
 
         self._rpc = yield from self._transport.connect(self)
 
     def close(self):
+        """Closes the connection to zigbee and server"""
         try:
             if hasattr(self, "_zb"):
                 self._zb.close()
@@ -77,7 +86,7 @@ class Application():
             LOGGER.exception(e)
 
     def _load(self):
-        self._network.load()
+        self._network._load()
 
         while True:
             try:
@@ -105,26 +114,43 @@ class Application():
         for ieee, dev in self._zb.devices():
             yield from self._network.add_device(dev)
 
-    def send_put(self, url, data):
+    def _send_put(self, url, data):
+        """Sends a RPC PUT request
+
+        :param url: The URL for the rpc call
+        :param data: The rpc content
+
+        """
         self._rpc.put(url, data)
 
-    def send_post(self, url, data):
+    def _send_post(self, url, data):
+        """Sends a RPC POST request
+
+        :param url: The URL for the rpc call
+        :param data: The rpc content
+
+        """
         self._rpc.post(url, data)
 
-    def send_delete(self, url):
+    def _send_delete(self, url):
+        """Sends a RPC DELETE request
+
+        :param url: The URL for the rpc call
+
+        """
         self._rpc.delete(url)
 
     def _send_full_network(self):
         self._rpc.post("/network", self._network.get_data())
-        self._network.save()
+        self._network._save()
 
     @asyncio.coroutine
-    def permit(self, timeout):
+    def _permit(self, timeout):
         v = yield from self._zb.controller.permit(timeout)
         return v
 
     @asyncio.coroutine
-    def permit_with_key(self, node, code, timeout):
+    def _permit_with_key(self, node, code, timeout):
         if node is None:
             LOGGER.debug("Permit join, so that we can get the IEEE from the device")
             if util.convert_install_code(code) is None:
@@ -150,7 +176,7 @@ class Application():
             devices["id"] = [devices["id"]]  # pragma: nocover
 
         for id in devices["id"]:
-            dev = self._network.get_device("", id)
+            dev = self._network._get_device("", id)
             if dev is None:
                 self._rpc.delete("/network/" + self._network.id + "/device/" + id)
 
@@ -161,7 +187,7 @@ class Application():
         return service, id
 
     @asyncio.coroutine
-    def delete_device(self, ieee):
+    def _delete_device(self, ieee):
         if type(ieee) is str:
             ieee = t.EmberEUI64([t.uint8_t(p, base=16) for p in ieee.split(':')])
         v = yield from self._zb.controller.remove(ieee)
@@ -169,18 +195,33 @@ class Application():
 
     # Callbacks
     def device_left(self, device):
+        """Callback when a device left the ZigBee network
+
+        :param device: The device that left
+
+        """
         LOGGER.debug("Device left %s", str(device.ieee))
         async_fun = getattr(asyncio, "ensure_future", asyncio.async)
         async_fun(self._zb.controller.remove(device.ieee))
 
     def device_removed(self, device):
+        """Callback when a device was removed
+
+        :param device: The device that was removed
+
+        """
         LOGGER.debug("Device removed %s", str(device.ieee))
         self._network.remove_device(device)
 
     def device_joined(self, device):
+        """Callback when a device joined the ZigBee network
+
+        :param device: The device that joined
+
+        """
         if self._installcode is None:
             LOGGER.debug("Device joined %s", str(device.ieee))
-            gw = self._network.get_device("gateway")
+            gw = self._network._get_device("gateway")
             val = gw.get_value(-1, -1)
             if hasattr(val, "_report_fut"):
                 val._report_fut.cancel()  # pragma: no cover
@@ -188,7 +229,7 @@ class Application():
         else:
             LOGGER.debug("Device tried to join, setting install code")
 
-            zb_dev = self._zb.controller.get_device(device.ieee)
+            zb_dev = self._zb.controller._get_device(device.ieee)
             if zb_dev is not None:
                 LOGGER.debug("Cleaning up old device, so that we can include it")
                 zb_dev.initializing = False
@@ -199,20 +240,42 @@ class Application():
             self._installcode = None
 
     def device_initialized(self, device):
+        """Callback when a device is full initialized
+
+        :param device: The device that has been initialized
+
+        """
         LOGGER.debug("Device initlized %s", str(device.ieee))
         async_fun = getattr(asyncio, "ensure_future", asyncio.async)
         async_fun(self._network.add_device(device, True))
 
     def attribute_updated(self, cluster, attrid, value):
+        """Callback when an attribute has been updated
+
+        :param cluster: The cluster of the attribute
+        :param attrid: The id of the attribute
+        :param value: The value of the attribute
+
+        """
         LOGGER.debug("Attributes updated %d %d %d", cluster, attrid, value)
 
     # RPC calls
     @asyncio.coroutine
     def put(self, url, data):
+        """PUT request handler
+
+        Only PUT on state is supported
+
+        :param url: The url the put was send on
+        :param data: The data from the put request
+        :returns: The result of the put request
+        :rtype: String
+
+        """
         service, id = self._split_url(url)
 
         if service == "state":
-            s = self._network.find_child(id)
+            s = self._network._find_child(id)
             if s is None:
                 return "Failed to find id %s" % id
 
@@ -226,33 +289,63 @@ class Application():
 
     @asyncio.coroutine
     def post(self, url, data):
+        """POST request handler
+
+        POST is not handled
+
+        :param url: The url the post was send on
+        :param data: The data of the post request
+        :returns: Always False
+        :rtype: Boolean
+
+        """
         service, id = self._split_url(url)
 
         return False
 
     @asyncio.coroutine
     def get(self, url, data=None):
+        """Get request handler
+
+        Only GET on state is supported
+
+        :param url: The url the post was send on
+        :param data: None
+        :returns: The data the GET requested
+        :rtype: String
+
+        """
         service, id = self._split_url(url)
 
         if service == "state":
-            s = self._network.find_child(id)
+            s = self._network._find_child(id)
             if s is None:
                 return "Failed to find id %s" % id
 
             if s.name != "state":
                 return "ID is not a state"
 
-            res = yield from s.handle_get()
+            res = yield from s._handle_get()
             return res
         else:
             return "Invalid service (%s) in url" % service
 
     @asyncio.coroutine
     def delete(self, url, data=None):
+        """Handles a DELETE request
+
+        Only delete on device is supported
+
+        :param url: The url to the object that should be deleted
+        :param data: None
+        :returns: The result of the request
+        :rtype: String
+
+        """
         service, id = self._split_url(url)
 
         if service == "device":
-            d = self._network.find_child(id)
+            d = self._network._find_child(id)
             if d is None:
                 return "Failed to find id %s" % id
 

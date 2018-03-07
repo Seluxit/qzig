@@ -6,13 +6,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 class DiagnosticsRetries(value.Value):
+    """Class to handle the diagnostics retries report"""
     _bind = True
     _attribute = 0x011B
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Mac Retries",
             "permission": value.ValuePermission.READ_ONLY,
             "type": "Count",
@@ -27,12 +28,13 @@ class DiagnosticsRetries(value.Value):
 
 
 class DiagnosticsRssi(value.Value):
+    """Class to handle the diagnostics rssi report"""
     _attribute = 0x011D
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "RSSI",
             "permission": value.ValuePermission.READ_ONLY,
             "type": "rssi",
@@ -47,12 +49,13 @@ class DiagnosticsRssi(value.Value):
 
 
 class DiagnosticsLinkQuality(value.Value):
+    """Class to handle the diagnostics link quality report"""
     _attribute = 0x011C
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Link Quality",
             "permission": value.ValuePermission.READ_ONLY,
             "type": "lqi",

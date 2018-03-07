@@ -98,7 +98,7 @@ def test_wrong_delete(app):
     assert app._rpc._transport.write.call_count == (count + 2)
     assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = '{"jsonrpc":"2.0","id":"468568996125","method":"DELETE","params":{"url":"/device/' + id + '"}}'
@@ -117,7 +117,7 @@ def test_state_no_reply(app):
 
     count = app._rpc._transport.write.call_count
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, "0")
@@ -142,7 +142,7 @@ def test_state_off_change(app):
 
     count = app._rpc._transport.write.call_count
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, "0")
@@ -163,7 +163,7 @@ def test_state_on_change(app):
 
     count = app._rpc._transport.write.call_count
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, "1")
@@ -184,7 +184,7 @@ def test_state_on_time_change(app):
 
     count = app._rpc._transport.write.call_count
 
-    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[1]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, "1")
@@ -205,7 +205,7 @@ def test_state_on_timeout_change(app):
 
     count = app._rpc._transport.write.call_count
 
-    s = app._network._children[0]._children[2].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[2]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, "1")
@@ -228,7 +228,7 @@ def test_state_kaercher_on_timeout_change(app):
 
     count = app._rpc._transport.write.call_count
 
-    s = app._network._children[0]._children[2].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[2]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, "1")
@@ -246,7 +246,7 @@ def test_state_report_change(app):
     devices = util._get_device()
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.REPORT)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.REPORT)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -266,7 +266,7 @@ def test_state_identify_change(app):
     devices = util._get_device(general_clusters.Identify.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -286,7 +286,7 @@ def test_state_poll_check_in_interval_change(app):
     devices = util._get_device(general_clusters.PollControl.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -306,7 +306,7 @@ def test_state_poll_long_interval_change(app):
     devices = util._get_device(general_clusters.PollControl.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[1]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -326,7 +326,7 @@ def test_state_poll_short_interval_change(app):
     devices = util._get_device(general_clusters.PollControl.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[2].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[2]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -346,7 +346,7 @@ def test_state_poll_fast_interval_change(app):
     devices = util._get_device(general_clusters.PollControl.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[3].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[3]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -366,7 +366,7 @@ def test_state_poll_stop_fast_change(app):
     devices = util._get_device(general_clusters.PollControl.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[4].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[4]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -386,7 +386,7 @@ def test_reset_all_alarms(app):
     devices = util._get_device(general_clusters.Alarms.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -421,7 +421,7 @@ def test_device_change_state(app):
 def test_gateway_permit(app):
     util._startup(app)
 
-    s = app._network._children[0].get_value(-1, -1).get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-1, -1)._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -439,7 +439,7 @@ def test_gateway_permit(app):
 def test_gateway_permit_with_key(app):
     util._startup(app)
 
-    s = app._network._children[0].get_value(-2, -2).get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-2, -2)._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -457,7 +457,7 @@ def test_gateway_permit_with_key(app):
 def test_gateway_permit_with_key_invalid_hex(app):
     util._startup(app)
 
-    s = app._network._children[0].get_value(-2, -2).get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-2, -2)._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -475,7 +475,7 @@ def test_gateway_permit_with_key_invalid_hex(app):
 def test_gateway_permit_with_key_short_hex(app):
     util._startup(app)
 
-    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[1]._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -493,7 +493,7 @@ def test_gateway_permit_with_key_short_hex(app):
 def test_gateway_permit_with_only_key(app):
     util._startup(app)
 
-    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-3, -3)._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -518,14 +518,14 @@ def test_gateway_permit_with_only_key(app):
     assert app._zb.controller._permit_with_key_count == 1
 
 
-def test_gateway_permit_with_only_8_bytes_key(app):
+def test_gateway_permit_with_only_7_bytes_key(app):
     util._startup(app)
 
-    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-3, -3)._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
-    rpc = util._rpc_state(id, "2871700150006E9E")
+    rpc = util._rpc_state(id, "28717001506E9E")
     app._rpc.data_received(rpc.encode())
 
     count = app._rpc._transport.write.call_count
@@ -533,23 +533,13 @@ def test_gateway_permit_with_only_8_bytes_key(app):
     util.run_loop()
 
     assert app._rpc._transport.write.call_count == (count + 1)
-    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
-
-    devices = util._get_device()
-    dev = next(iter(devices.values()))
-    app._zb.controller._cb.device_joined(dev)
-
-    count = app._rpc._transport.write.call_count
-
-    util.run_loop()
-
-    assert app._zb.controller._permit_with_key_count == 1
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_gateway_permit_with_only_short_key(app):
     util._startup(app)
 
-    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-3, -3)._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -567,7 +557,7 @@ def test_gateway_permit_with_only_short_key(app):
 def test_gateway_permit_with_only_invalid_key(app):
     util._startup(app)
 
-    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-3, -3)._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -585,7 +575,7 @@ def test_gateway_permit_with_only_invalid_key(app):
 def test_gateway_permit_with_only_wrong_key(app):
     util._startup(app)
 
-    s = app._network._children[0].get_value(-3, -3).get_state(state.StateType.CONTROL)
+    s = app._network._children[0].get_value(-3, -3)._get_state(state.StateType.CONTROL)
     assert s is not None
 
     id = s.id
@@ -627,7 +617,7 @@ def test_get_value(app):
     devices = util._get_device()
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.REPORT)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.REPORT)
     assert s is not None
 
     id = s.id
@@ -647,7 +637,7 @@ def test_kaercher_fallback_enable_flag_change(app):
     devices = util._get_device(kaercher.KaercherFallback.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[0].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -667,7 +657,7 @@ def test_kaercher_fallback_online_flag_change(app):
     devices = util._get_device(kaercher.KaercherFallback.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[1].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[1]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -687,7 +677,7 @@ def test_kaercher_fallback_start_time_change(app):
     devices = util._get_device(kaercher.KaercherFallback.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[2].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[2]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -707,7 +697,7 @@ def test_kaercher_fallback_duration_change(app):
     devices = util._get_device(kaercher.KaercherFallback.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[3].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[3]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)
@@ -727,7 +717,7 @@ def test_kaercher_fallback_interval_change(app):
     devices = util._get_device(kaercher.KaercherFallback.cluster_id)
     util._startup(app, devices)
 
-    s = app._network._children[0]._children[4].get_state(state.StateType.CONTROL)
+    s = app._network._children[0]._children[4]._get_state(state.StateType.CONTROL)
     assert s is not None
     id = s.id
     rpc = util._rpc_state(id, 0)

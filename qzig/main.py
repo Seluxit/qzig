@@ -9,6 +9,7 @@ import qzig.application as application
 
 
 def setup_logging():
+    """Setup the logging"""
     # set up logging to file
     format = '%(asctime)s %(name)-14s %(levelname)-8s %(message)s'
     logging.basicConfig(level=logging.DEBUG,
@@ -28,6 +29,7 @@ def setup_logging():
 
 
 def main():  # pragma: no cover
+    """The main entry point"""
     setup_logging()
 
     parser = argparse.ArgumentParser(description='ZigBee Converter for Seluxit Q platform.')

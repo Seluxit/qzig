@@ -6,13 +6,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Humidity(value.Value):
+    """Class to handle the humidity report"""
     _attribute = 0
     _bind = True
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Humidity",
             "permission": value.ValuePermission.READ_ONLY,
             "type": "Humidity",
@@ -25,6 +26,6 @@ class Humidity(value.Value):
         self.data["number"].step = 0.01
         self.data["number"].unit = "percentage"
 
-    def handle_report(self, attribute, data):
+    def _handle_report(self, attribute, data):
         if attribute == self._attribute:
             return (data / 100)

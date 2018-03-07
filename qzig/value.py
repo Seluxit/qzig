@@ -10,6 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ValuePermission(enum.Enum):
+    """Enum for value permission"""
     READ_ONLY = "r"
     WRITE_ONLY = "w"
     READ_WRITE = "rw"
@@ -17,6 +18,11 @@ class ValuePermission(enum.Enum):
 
 class ValueNumberType():
     def __init__(self, data=None):
+        """Class to handle a Number value type
+
+        :param data: The value of the number
+
+        """
         if data is None:
             self.min = 0
             self.max = 0
@@ -38,11 +44,17 @@ class ValueNumberType():
 
 
 class ValueSetType():
+    """Class to handle a Set value type"""
     elements = []
 
 
 class ValueStringType():
     def __init__(self, data=None):
+        """Class to handle a String value type
+
+        :param data: The value of the string
+
+        """
         if data is None:
             self.max = 1
             self.encoding = ""
@@ -52,16 +64,19 @@ class ValueStringType():
 
 
 class ValueBlobType():
+    """Class to handle a Blob value type"""
     max = 1
     encoding = ""
 
 
 class ValueXmlType():
+    """Class to handle a XML value type"""
     xsd = ""
     namespace = ""
 
 
 class ValueStatus(enum.Enum):
+    """Enum for Value Status"""
     OK = "ok"
     UPDATE = "update"
     PENDING = "pending"
@@ -71,8 +86,17 @@ class Value(model.Model):
     _bind = False
     _index = 0
     _singleton = False
+    _name = "value"
 
     def __init__(self, parent, endpoint_id=None, cluster_id=None, load=None):
+        """Creates a new value
+
+        :param parent: The parent of the value
+        :param endpoint_id: The id of the endpoint
+        :param cluster_id: The id of the cluster
+        :param load: The data it should load
+
+        """
         self._parent = parent
         self._children = []
 
@@ -86,32 +110,46 @@ class Value(model.Model):
             self._should_bind = True
             self._init()
             if self.data["permission"] == ValuePermission.READ_ONLY:
-                self.add_states([state.StateType.REPORT])
+                self._add_states([state.StateType.REPORT])
             elif self.data["permission"] == ValuePermission.WRITE_ONLY:
-                self.add_states([state.StateType.CONTROL])
+                self._add_states([state.StateType.CONTROL])
             else:
-                self.add_states([state.StateType.REPORT, state.StateType.CONTROL])
+                self._add_states([state.StateType.REPORT, state.StateType.CONTROL])
         else:
             self._should_bind = False
             self._load(load)
 
-    @property
-    def name(self):
-        return "value"
-
-    def create_child(self, **args):
+    def _create_child(self, **args):
         return state.State(self, **args)
 
     @property
     def endpoint_id(self):
+        """Returns the id of the endpoint of the value
+
+        :returns: The endpoint id
+        :rtype: Interger
+
+        """
         return self.attr["endpoint_id"]
 
     @property
     def cluster_id(self):
+        """Returns the id of the cluster of the value
+
+        :returns: The cluster id
+        :rtype: Interger
+
+        """
         return self.attr["cluster_id"]
 
     @property
     def index(self):
+        """The index of the value
+
+        :returns: The index of the value
+        :rtype: Interger
+
+        """
         if "index" in self.attr:
             return self.attr["index"]
         else:  # pragma: nocover
@@ -132,30 +170,36 @@ class Value(model.Model):
 
     @asyncio.coroutine
     def parse_cluster(self, endpoint, cluster):
+        """Handle the enpoint and cluster
+
+        :param endpoint: The endpoint of this value
+        :param cluster: The cluster of this value
+
+        """
         self._endpoint = endpoint
         self._cluster = cluster
 
-        if hasattr(self, 'handle_command'):
+        if hasattr(self, '_handle_command'):
             LOGGER.debug("Adding handle command")
-            cluster.handle_cluster_request = self.handle_command
+            cluster.handle_cluster_request = self._handle_command
 
-        rep = self.get_state(state.StateType.REPORT)
+        rep = self._get_state(state.StateType.REPORT)
         if rep is not None:
             cluster.add_listener(rep)
 
         if self._should_bind:
             if self._bind:
                 LOGGER.debug("Binding to %s" % self.data["name"])
-                yield from self.bind(self.endpoint_id, self.cluster_id)
+                yield from self._do_bind(self.endpoint_id, self.cluster_id)
             else:
-                yield from self.handle_get()
+                yield from self._handle_get()
 
-    def add_states(self, types):
+    def _add_states(self, types):
         for t in types:
             s = state.State(self, t)
             self._children.append(s)
 
-    def get_state(self, state_type):
+    def _get_state(self, state_type):
         try:
             state = next(s for s in self._children
                          if s.type == state_type)
@@ -163,42 +207,57 @@ class Value(model.Model):
             state = None
         return state
 
-    def get_raw_data(self):
+    def _get_raw_data(self):
         tmp = self.data
         if tmp is not None:
             tmp.pop('state', None)
         return tmp
 
     def get_data(self):
-        tmp = self.get_raw_data()
+        """Returns the data of the value
+
+        :returns: The raw data of the value
+        :rtype: Dict
+
+        """
+        tmp = self._get_raw_data()
         if len(self._children):
             tmp["state"] = []
         for s in self._children:
             tmp["state"].append(s.get_data())
         return tmp
 
-    def handle_report(self, attribute, data):
+    def _handle_report(self, attribute, data):
         if hasattr(self, '_attribute'):
             if self._attribute == attribute:
                 return int(data)
 
     def delayed_report(self, time, attribute, value):
+        """Send a report delayed
+
+        :param time: The delay time
+        :param attribute: The id of the attribute
+        :param value: The value of the attribute
+        :returns: Asyncio future
+        :rtype: Asyncio
+
+        """
         async_fun = getattr(asyncio, "ensure_future", asyncio.async)
         return async_fun(self._delayed_report(time, attribute, value))
 
     @asyncio.coroutine
     def _delayed_report(self, time, attribute, value):
-        s = self.get_state(state.StateType.REPORT)
+        s = self._get_state(state.StateType.REPORT)
         if s is not None:
             yield from asyncio.sleep(time)
             s.attribute_updated(attribute, value)
 
     @asyncio.coroutine
-    def handle_control(self, data):  # pragma: no cover
+    def _handle_control(self, data):  # pragma: no cover
         LOGGER.error("Called unhandled handle_control")
 
     @asyncio.coroutine
-    def handle_get(self):
+    def _handle_get(self):
         if hasattr(self, '_attribute'):
             if hasattr(self, '_manufacturer'):
                 manufacturer = self._manufacturer

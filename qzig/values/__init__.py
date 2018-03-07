@@ -5,7 +5,7 @@ import bellows.zigbee.zcl.clusters.homeautomation as homeautomation_clusters
 from qzig.values import onoff, identify, temperature, humidity, diagnostics, ota, power, poll, alarm, kaercher
 
 
-def get_value_class(cluster_id, manufacturer):
+def _get_value_class(cluster_id, manufacturer):
     if cluster_id == general_clusters.OnOff.cluster_id:
         values = [onoff.OnOff,
                   onoff.OnTime,

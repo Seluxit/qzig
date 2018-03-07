@@ -7,10 +7,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Identify(value.Value):
+    """Class to send the identify command"""
+
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Identify",
             "permission": value.ValuePermission.WRITE_ONLY,
             "type": "Identify",
@@ -24,10 +26,10 @@ class Identify(value.Value):
         self.data["number"].unit = "seconds"
 
     @asyncio.coroutine
-    def handle_control(self, data):
+    def _handle_control(self, data):
         v = yield from self._cluster.identify(int(data))
 
         LOGGER.debug("%s: %r", self.data["name"], v)
 
-        self.save()
+        self._save()
         return True

@@ -11,9 +11,16 @@ LOGGER = logging.getLogger(__name__)
 class JsonRPC(asyncio.Protocol):
 
     class Terminator:
+        """Class used to signal when the connection shoud be closed"""
         pass
 
     def __init__(self, app, connected_future=None):
+        """Creates a new JsonRPC
+
+        :param app: The application that should be linked into the connection
+        :param connected_future: Future that should be called when there is a connection
+
+        """
         self._connected_future = connected_future
         self._sendq = asyncio.Queue()
         self._reqq = asyncio.Queue()
@@ -22,7 +29,11 @@ class JsonRPC(asyncio.Protocol):
         self._pending = (-1, None)
 
     def connection_made(self, transport):
-        """Callback when the socket is connected"""
+        """Callback when the socket is connected
+
+        :param transport: The socket to the server
+
+        """
         self._transport = transport
         if self._connected_future is not None:
             self._connected_future.set_result(True)
@@ -31,8 +42,11 @@ class JsonRPC(asyncio.Protocol):
         self._task_request = async_fun(self._request_task())
 
     def data_received(self, data):
-        """Callback when there is data received from the socket"""
+        """Callback when there is data received from the socket
 
+        :param data: The received data from the server
+
+        """
         data = data.decode()
         rpc = json.loads(data)
         if "method" in rpc:
@@ -42,6 +56,11 @@ class JsonRPC(asyncio.Protocol):
             self._handle_result(rpc)
 
     def connection_lost(self, exc):
+        """Callback when the connection to the server is lost
+
+        :param exc: The error that caused the connection to close
+
+        """
         LOGGER.debug("Connection lost")
 
     def close(self):
@@ -167,22 +186,53 @@ class JsonRPC(asyncio.Protocol):
 
     @asyncio.coroutine
     def get(self, url):
+        """Sends a RPC GET request
+
+        :param url: The url of the rpc request
+        :returns: The result of the GET request
+        :rtype: String
+
+        """
         fut = asyncio.Future()
         data = yield from self._rpc("GET", url, fut=fut)
         return data
 
     def post(self, url, data):
+        """Sends a RPC POST request
+
+        :param url: The url of the rpc request
+        :param data: The data of the rpc request
+
+        """
         self._rpc("POST", url, data)
 
     def put(self, url, data):
+        """Sends a RPC PUT request
+
+        :param url: The url of the rpc request
+        :param data: The data of the rpc request
+
+        """
         self._rpc("PUT", url, data)
 
     def delete(self, url):
+        """Sends a RPC DELETE request
+
+        :param url: The url of the rpc request
+
+        """
         self._rpc("DELETE", url)
 
 
 @asyncio.coroutine
 def connect(model):  # pragma: no cover
+    """This is used to connect the rpc to the server
+
+    :param model: The class it should use to connect with
+    :returns: The socket that is connected to the server
+    :rtype: Socket
+
+    """
     loop = asyncio.get_event_loop()
 
     connection_future = asyncio.Future()

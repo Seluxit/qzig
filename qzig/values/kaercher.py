@@ -9,6 +9,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class KaercherFallback(Cluster):
+    """Kaercher Fallback Cluster"""
     cluster_id = 0xFC00
     name = "Kärcher Fallback"
     ep_attribute = 'kaercher_fallback'
@@ -24,6 +25,7 @@ class KaercherFallback(Cluster):
 
 
 class KaercherDeviceState(Cluster):
+    """Kaercher Device State Cluster"""
     cluster_id = 0xFC01
     name = "Kärcher Device State"
     ep_attribute = 'kaercher_device_state'
@@ -37,6 +39,7 @@ class KaercherDeviceState(Cluster):
 
 
 class DeviceState(value.Value):
+    """Value to handle device state reports"""
     _bind = True
     _attribute = 0
     _singleton = True
@@ -45,7 +48,7 @@ class DeviceState(value.Value):
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Device State",
             "permission": value.ValuePermission.READ_ONLY,
             "type": "Device Mode",
@@ -60,6 +63,7 @@ class DeviceState(value.Value):
 
 
 class DeviceStateOtaUpdate(value.Value):
+    """Value to handle device state ota update report"""
     _attribute = 1
     _singleton = True
     _manufacturer = 0x122C
@@ -67,7 +71,7 @@ class DeviceStateOtaUpdate(value.Value):
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Device State OTA Update",
             "permission": value.ValuePermission.READ_ONLY,
             "type": "On/off",
@@ -82,6 +86,7 @@ class DeviceStateOtaUpdate(value.Value):
 
 
 class DeviceStateValueError(value.Value):
+    """Value to handle device state value error"""
     _bind = True
     _attribute = 0x0100
     _manufacturer = 0x122C
@@ -89,7 +94,7 @@ class DeviceStateValueError(value.Value):
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Device State Valve Error",
             "permission": value.ValuePermission.READ_ONLY,
             "type": "State",
@@ -104,13 +109,14 @@ class DeviceStateValueError(value.Value):
 
 
 class FallbackEnable(value.Value):
+    """Value to handle fallback enable"""
     _attribute = 0
     _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Fallback Enable",
             "permission": value.ValuePermission.READ_WRITE,
             "type": "Fallback Enable",
@@ -124,7 +130,7 @@ class FallbackEnable(value.Value):
         self.data["number"].unit = "Boolean"
 
     @asyncio.coroutine
-    def handle_control(self, data):
+    def _handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True}, manufacturer=self._manufacturer)
 
         if v[0][0].status == 0:
@@ -133,18 +139,19 @@ class FallbackEnable(value.Value):
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
 
-        self.save()
+        self._save()
         return True
 
 
 class FallbackOnline(value.Value):
+    """Value to handle fallback online"""
     _attribute = 1
     _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Fallback Online",
             "permission": value.ValuePermission.READ_WRITE,
             "type": "Fallback Online",
@@ -158,7 +165,7 @@ class FallbackOnline(value.Value):
         self.data["number"].unit = "Boolean"
 
     @asyncio.coroutine
-    def handle_control(self, data):
+    def _handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: False if(data == "0") else True}, manufacturer=self._manufacturer)
 
         if v[0][0].status == 0:
@@ -167,18 +174,19 @@ class FallbackOnline(value.Value):
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
 
-        self.save()
+        self._save()
         return True
 
 
 class FallbackStartTime(value.Value):
+    """Value to handle fallback start time"""
     _attribute = 2
     _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Fallback Start Time",
             "permission": value.ValuePermission.READ_WRITE,
             "type": "Time",
@@ -192,7 +200,7 @@ class FallbackStartTime(value.Value):
         self.data["number"].unit = "minute"
 
     @asyncio.coroutine
-    def handle_control(self, data):
+    def _handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
         if v[0][0].status == 0:
@@ -201,18 +209,19 @@ class FallbackStartTime(value.Value):
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
 
-        self.save()
+        self._save()
         return True
 
 
 class FallbackDuration(value.Value):
+    """Value to handle fallback duration"""
     _attribute = 3
     _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Fallback Duration",
             "permission": value.ValuePermission.READ_WRITE,
             "type": "Duration",
@@ -226,7 +235,7 @@ class FallbackDuration(value.Value):
         self.data["number"].unit = "minute"
 
     @asyncio.coroutine
-    def handle_control(self, data):
+    def _handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
         if v[0][0].status == 0:
@@ -235,18 +244,19 @@ class FallbackDuration(value.Value):
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
 
-        self.save()
+        self._save()
         return True
 
 
 class FallbackInterval(value.Value):
+    """Value to handle fallback interval"""
     _attribute = 4
     _manufacturer = 0x122C
 
     def _init(self):
         self.data = {
             ":type": "urn:seluxit:xml:bastard:value-1.1",
-            ":id": self.uuid,
+            ":id": self._uuid,
             "name": "Fallback Interval",
             "permission": value.ValuePermission.READ_WRITE,
             "type": "Interval",
@@ -260,7 +270,7 @@ class FallbackInterval(value.Value):
         self.data["number"].unit = "Day"
 
     @asyncio.coroutine
-    def handle_control(self, data):
+    def _handle_control(self, data):
         v = yield from self._cluster.write_attributes({self._attribute: data}, manufacturer=self._manufacturer)
 
         if v[0][0].status == 0:
@@ -269,5 +279,5 @@ class FallbackInterval(value.Value):
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
 
-        self.save()
+        self._save()
         return True

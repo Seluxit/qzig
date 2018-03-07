@@ -7,6 +7,13 @@ import qzig.status as status
 
 class QZigEncoder(json.JSONEncoder):
     def default(self, obj):
+        """Converts a qzig obj to json
+
+        :param obj: The object that should be converted to json
+        :returns: The obj as json
+        :rtype: JSON
+
+        """
         if type(obj) is value.ValuePermission:
             return obj.value
         if type(obj) is value.ValueStatus:
