@@ -140,6 +140,9 @@ def test_state_off_change(app):
     devices = util._get_device()
     util._startup(app, devices)
 
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.OnOff.cluster_id]
+
     count = app._rpc._transport.write.call_count
 
     s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
@@ -154,12 +157,16 @@ def test_state_off_change(app):
 
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
     assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert cluster._off is True
 
 
 def test_state_on_change(app):
     app._gateway = None
     devices = util._get_device()
     util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.OnOff.cluster_id]
 
     count = app._rpc._transport.write.call_count
 
@@ -175,6 +182,31 @@ def test_state_on_change(app):
 
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
     assert '"data": "1"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert cluster._on is True
+
+
+def test_state_on_change_failed(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.OnOff.cluster_id]
+    cluster._status = 1
+
+    count = app._rpc._transport.write.call_count
+
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, "1")
+    app._rpc.data_received(rpc.encode())
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+    assert cluster._on is True
 
 
 def test_state_on_time_change(app):
@@ -198,6 +230,28 @@ def test_state_on_time_change(app):
     assert '"data": "1"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_state_on_time_change_failed(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.OnOff.cluster_id]
+    cluster._status = 1
+    count = app._rpc._transport.write.call_count
+
+    s = app._network._children[0]._children[1]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, "1")
+    app._rpc.data_received(rpc.encode())
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_state_on_timeout_change(app):
     app._gateway = None
     devices = util._get_device()
@@ -217,6 +271,28 @@ def test_state_on_timeout_change(app):
 
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
     assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_on_timeout_change_failed(app):
+    app._gateway = None
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.OnOff.cluster_id]
+    cluster._status = 1
+    count = app._rpc._transport.write.call_count
+
+    s = app._network._children[0]._children[2]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, "1")
+    app._rpc.data_received(rpc.encode())
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_state_kaercher_on_timeout_change(app):
@@ -301,6 +377,30 @@ def test_state_poll_check_in_interval_change(app):
     assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_state_poll_check_in_interval_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.PollControl.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert 'error' in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_state_poll_long_interval_change(app):
     app._gateway = None
     devices = util._get_device(general_clusters.PollControl.cluster_id)
@@ -319,6 +419,30 @@ def test_state_poll_long_interval_change(app):
 
     assert app._rpc._transport.write.call_count == (count + 2)
     assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_poll_long_interval_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.PollControl.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[1]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert 'error' in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_state_poll_short_interval_change(app):
@@ -341,6 +465,30 @@ def test_state_poll_short_interval_change(app):
     assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_state_poll_short_interval_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.PollControl.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[2]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert 'error' in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_state_poll_fast_interval_change(app):
     app._gateway = None
     devices = util._get_device(general_clusters.PollControl.cluster_id)
@@ -361,6 +509,30 @@ def test_state_poll_fast_interval_change(app):
     assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_state_poll_fast_interval_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.PollControl.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[3]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert 'error' in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_state_poll_stop_fast_change(app):
     app._gateway = None
     devices = util._get_device(general_clusters.PollControl.cluster_id)
@@ -379,6 +551,30 @@ def test_state_poll_stop_fast_change(app):
 
     assert app._rpc._transport.write.call_count == (count + 1)
     assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_state_poll_stop_fast_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(general_clusters.PollControl.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.PollControl.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[4]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_reset_all_alarms(app):
@@ -508,6 +704,34 @@ def test_gateway_permit_with_only_key(app):
     assert "result" in app._rpc._transport.write.call_args[0][0].decode()
 
     devices = util._get_device()
+    dev = next(iter(devices.values()))
+    app._zb.controller._cb.device_joined(dev)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._zb.controller._permit_with_key_count == 1
+
+
+def test_gateway_permit_with_only_key_on_old_device(app):
+    devices = util._get_device()
+    util._startup(app, devices)
+
+    s = app._network._children[0].get_value(-3, -3)._get_state(state.StateType.CONTROL)
+    assert s is not None
+
+    id = s.id
+    rpc = util._rpc_state(id, "11223344556677884AF7")
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
+
     dev = next(iter(devices.values()))
     app._zb.controller._cb.device_joined(dev)
 
@@ -652,6 +876,30 @@ def test_kaercher_fallback_enable_flag_change(app):
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_kaercher_fallback_enable_flag_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[kaercher.KaercherFallback.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[0]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_kaercher_fallback_online_flag_change(app):
     app._gateway = None
     devices = util._get_device(kaercher.KaercherFallback.cluster_id)
@@ -670,6 +918,30 @@ def test_kaercher_fallback_online_flag_change(app):
 
     assert app._rpc._transport.write.call_count == (count + 2)
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_kaercher_fallback_online_flag_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[kaercher.KaercherFallback.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[1]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_kaercher_fallback_start_time_change(app):
@@ -692,6 +964,30 @@ def test_kaercher_fallback_start_time_change(app):
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_kaercher_fallback_start_time_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[kaercher.KaercherFallback.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[2]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_kaercher_fallback_duration_change(app):
     app._gateway = None
     devices = util._get_device(kaercher.KaercherFallback.cluster_id)
@@ -712,6 +1008,30 @@ def test_kaercher_fallback_duration_change(app):
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_kaercher_fallback_duration_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[kaercher.KaercherFallback.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[3]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_kaercher_fallback_interval_change(app):
     app._gateway = None
     devices = util._get_device(kaercher.KaercherFallback.cluster_id)
@@ -730,3 +1050,27 @@ def test_kaercher_fallback_interval_change(app):
 
     assert app._rpc._transport.write.call_count == (count + 2)
     assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
+
+
+def test_kaercher_fallback_interval_change_failed(app):
+    app._gateway = None
+    devices = util._get_device(kaercher.KaercherFallback.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[kaercher.KaercherFallback.cluster_id]
+    cluster._status = 1
+
+    s = app._network._children[0]._children[4]._get_state(state.StateType.CONTROL)
+    assert s is not None
+    id = s.id
+    rpc = util._rpc_state(id, 0)
+
+    app._rpc.data_received(rpc.encode())
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert "error" in app._rpc._transport.write.call_args[0][0].decode()

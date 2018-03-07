@@ -120,6 +120,28 @@ def test_zigbee_input_attribute_update(app):
     assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
 
 
+def test_zigbee_double_attribute(app):
+    c_id = general_clusters.OnOff.cluster_id
+    devices = util._get_device()
+    dev = next(iter(devices.values()))
+    dev.endpoints[1].out_clusters[c_id] = util.MockCluster(c_id)
+    util._startup(app, devices)
+
+    cluster = dev.endpoints[1].in_clusters[c_id]
+
+    assert cluster._cb is not None
+
+    for c in cluster._cb:
+        c.attribute_updated(0, 1234567890)
+
+    count = app._rpc._transport.write.call_count
+
+    util.run_loop()
+
+    assert app._rpc._transport.write.call_count == (count + 1)
+    assert '"1234567890"' in app._rpc._transport.write.call_args[0][0].decode()
+
+
 def test_zigbee_wrong_attribute_update(app):
     devices = util._get_device()
     util._startup(app, devices)

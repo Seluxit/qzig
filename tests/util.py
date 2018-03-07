@@ -38,7 +38,10 @@ class ControllerMock():
         self._permit_with_key_count += 1
 
     def _get_device(self, ieee):
-        return None
+        try:
+            return self.devices[ieee]
+        except KeyError:
+            return None
 
 
 class MockDevice():
@@ -65,6 +68,7 @@ class MockCluster():
         self.cluster_id = id
         self._cb = None
         self.reply_count = 0
+        self._status = 0
 
     @asyncio.coroutine
     def read_attributes(self, *args, **kwargs):
@@ -86,10 +90,10 @@ class MockCluster():
     @asyncio.coroutine
     def write_attributes(self, attributes, is_report=False, manufacturer=None):
         if is_report:
-            return [0, 0]
+            return [0, self._status]
         else:
             res = bellows.zigbee.zcl.foundation.WriteAttributesStatusRecord()
-            res.status = 0
+            res.status = self._status
             return [[res]]
 
     @asyncio.coroutine
@@ -103,16 +107,16 @@ class MockCluster():
     @asyncio.coroutine
     def on(self):
         self._on = True
-        return [1, 0]
+        return [1, self._status]
 
     @asyncio.coroutine
     def off(self):
         self._off = True
-        return [0, 0]
+        return [0, self._status]
 
     @asyncio.coroutine
     def on_with_timed_off(self):
-        return [0, 0]
+        return [0, self._status]
 
     @asyncio.coroutine
     def identify(self, timeout):
@@ -129,7 +133,7 @@ class MockCluster():
 
     @asyncio.coroutine
     def dummy(self, *args, manufacturer=None):
-        return [0, 0]
+        return [0, self._status]
 
     def __getattr__(self, *args):
         return self.dummy
