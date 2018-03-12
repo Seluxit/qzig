@@ -229,7 +229,7 @@ class Application():
         else:
             LOGGER.debug("Device tried to join, setting install code")
 
-            zb_dev = self._zb.controller._get_device(device.ieee)
+            zb_dev = self._zb.controller.get_device(device.ieee)
             if zb_dev is not None:
                 LOGGER.debug("Cleaning up old device, so that we can include it")
                 zb_dev.initializing = False

@@ -37,7 +37,7 @@ class ControllerMock():
     def permit_with_key(self, ieee, installcode, timeout):
         self._permit_with_key_count += 1
 
-    def _get_device(self, ieee):
+    def get_device(self, ieee):
         try:
             return self.devices[ieee]
         except KeyError:
