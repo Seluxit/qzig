@@ -65,7 +65,10 @@ class OnTime(value.Value):
         self.data["number"].min = 0
         self.data["number"].max = 6553
         self.data["number"].step = 1
-        self.data["number"].unit = "seconds"
+        if self._get_manufacturer() == "Kaercher":
+            self.data["number"].unit = "minutes"
+        else:
+            self.data["number"].unit = "seconds"
 
     @asyncio.coroutine
     def _handle_control(self, data):
@@ -101,7 +104,10 @@ class OnTimeout(value.Value):
         self.data["number"].min = 0
         self.data["number"].max = 6553
         self.data["number"].step = 1
-        self.data["number"].unit = "seconds"
+        if self._get_manufacturer() == "Kaercher":
+            self.data["number"].unit = "minutes"
+        else:
+            self.data["number"].unit = "seconds"
 
     @asyncio.coroutine
     def _handle_control(self, data=None):
