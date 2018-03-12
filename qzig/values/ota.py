@@ -1,5 +1,6 @@
 import logging
 import os
+import asyncio
 
 import qzig.value as value
 from bellows.zigbee.zcl.foundation import Status
@@ -16,13 +17,34 @@ class Ota(value.Value):
             ":type": "urn:seluxit:xml:bastard:value-1.1",
             ":id": self._uuid,
             "name": "Ota",
-            "permission": value.ValuePermission.READ_ONLY,
+            "permission": value.ValuePermission.READ_WRITE,
             "type": "Ota",
             "string": value.ValueStringType(),
             "status": value.ValueStatus.OK,
             "state": []
         }
         self.data["string"].max = 50
+
+    @asyncio.coroutine
+    def _handle_control(self, data):
+        """Handle OTA control
+
+        Expects data to be in this format: 4652-20002-773
+        """
+        data = [int(x) for x in data.split("-")]
+        if len(data) < 3:
+            return "Invalid data format"
+
+        payload = 3  # Query jitter, manufacturer code, image type, and new file version
+        jitter = 100
+        v = yield from self._cluster.image_notify(payload, jitter, data[0], data[1], data[2])
+
+        if v[1] != 0:
+            LOGGER.error("%s: %r", self.data["name"], v)
+            return False
+
+        self._save()
+        return True
 
     def _handle_report(self, attribute, data):
         """Handles incomming OTA reports

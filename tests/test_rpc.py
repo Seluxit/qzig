@@ -30,19 +30,19 @@ def simple_rpc_call(app, cluster, child, value, write_call=1, status=0, child_ty
     return app._rpc._transport.write.call_args[0][0].decode()
 
 
-def failed_rpc_call(app, cluster, child):
-    result = simple_rpc_call(app, cluster, child, 0, 1, 1)
+def failed_rpc_call(app, cluster, child, value="0"):
+    result = simple_rpc_call(app, cluster, child, value, 1, 1)
     assert "error" in result
 
 
-def valid_rpc_call(app, cluster, child):
-    result = simple_rpc_call(app, cluster, child, 0, 2)
+def valid_rpc_call(app, cluster, child, value="0", write_call=2):
+    result = simple_rpc_call(app, cluster, child, value, write_call)
     assert "PUT" in result
-    assert '"data": "0"'
+    assert '"data": "' + str(value) + '"'
 
 
-def result_rpc_call(app, cluster, child):
-    result = simple_rpc_call(app, cluster, child, 0, 1)
+def result_rpc_call(app, cluster, child, value="0", write_call=1):
+    result = simple_rpc_call(app, cluster, child, value, write_call)
     assert "result" in result
 
 
@@ -180,10 +180,7 @@ def test_state_off_change(app):
 
 
 def test_state_on_change(app):
-    result = simple_rpc_call(app, general_clusters.OnOff.cluster_id, 0, "1", 2)
-
-    assert "PUT" in result
-    assert '"data": "1"' in result
+    valid_rpc_call(app, general_clusters.OnOff.cluster_id, 0, "1")
 
 
 def test_state_on_change_failed(app):
@@ -191,10 +188,7 @@ def test_state_on_change_failed(app):
 
 
 def test_state_on_time_change(app):
-    result = simple_rpc_call(app, general_clusters.OnOff.cluster_id, 1, "1", 2)
-
-    assert "PUT" in result
-    assert '"data": "1"' in result
+    valid_rpc_call(app, general_clusters.OnOff.cluster_id, 1, "1")
 
 
 def test_state_on_time_change_failed(app):
@@ -582,3 +576,15 @@ def test_kaercher_fallback_interval_change(app):
 
 def test_kaercher_fallback_interval_change_failed(app):
     failed_rpc_call(app, kaercher.KaercherFallback.cluster_id, 4)
+
+
+def test_ota_notify(app):
+    result_rpc_call(app, general_clusters.Ota.cluster_id, 0, "4652-20002-773", 1)
+
+
+def test_ota_notify_failed(app):
+    failed_rpc_call(app, general_clusters.Ota.cluster_id, 0, "4652-20002-773")
+
+
+def test_ota_notify_invalid(app):
+    failed_rpc_call(app, general_clusters.Ota.cluster_id, 0, "4652")
