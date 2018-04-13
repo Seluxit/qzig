@@ -113,7 +113,7 @@ class OnTimeout(value.Value):
     def _handle_control(self, data=None):
         if self._get_manufacturer() == "Kaercher":
             data = int(data)
-            v = yield from self._cluster.request(False, 0x42, (t.uint16_t, ), data * 10, manufacturer=0x122C)
+            v = yield from self._cluster.request(False, 0x42, (t.uint16_t, ), data, manufacturer=0x122C)
         else:
             v = yield from self._cluster.on_with_timed_off()
 
