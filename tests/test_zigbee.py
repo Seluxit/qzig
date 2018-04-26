@@ -247,6 +247,32 @@ def test_zigbee_ota_update(app):
     os.system("rm ota/2-2-2.*")
 
 
+def test_zigbee_ota_page_update(app):
+    devices = util._get_device(general_clusters.Ota.cluster_id)
+    util._startup(app, devices)
+
+    dev = next(iter(devices.values()))
+    cluster = dev.endpoints[1].in_clusters[general_clusters.Ota.cluster_id]
+    count = app._rpc._transport.write.call_count
+
+    os.system("mkdir -p ota")
+    os.system("echo 2-2-2.bin > ota/2-2-2.upgrade")
+    os.system("dd if=/dev/zero of=ota/2-2-2.bin bs=1M count=1")
+
+    cluster.handle_cluster_request(0, 0, 1, (1, 2, 2, 2, 2))
+    util.run_loop()
+    assert app._rpc._transport.write.call_count == (count + 1)
+
+    cluster.handle_cluster_request(0, 0, 4, (0, 2, 2, 2, 0, 50, 150, 10))
+    util.run_loop(.0055)
+    assert app._rpc._transport.write.call_count == (count + 2)
+
+    util.run_loop(.0055)
+    assert app._rpc._transport.write.call_count == (count + 3)
+
+    os.system("rm ota/2-2-2.*")
+
+
 def test_zigbee_humidity_update(app):
     devices = util._get_device(measurement_clusters.RelativeHumidity.cluster_id)
     util._startup(app, devices)

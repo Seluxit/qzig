@@ -30,13 +30,13 @@ def simple_rpc_call(app, cluster, child, value, write_call=1, status=0, child_ty
     return app._rpc._transport.write.call_args[0][0].decode()
 
 
-def failed_rpc_call(app, cluster, child, value="0"):
-    result = simple_rpc_call(app, cluster, child, value, 1, 1)
+def failed_rpc_call(app, cluster, child, value="0", write_call=1):
+    result = simple_rpc_call(app, cluster, child, value, write_call, 1)
     assert "error" in result
 
 
-def valid_rpc_call(app, cluster, child, value="0", write_call=2):
-    result = simple_rpc_call(app, cluster, child, value, write_call)
+def valid_rpc_call(app, cluster, child, value="0", write_call=2, status=0):
+    result = simple_rpc_call(app, cluster, child, value, write_call, status)
     assert "PUT" in result
     assert '"data": "' + str(value) + '"'
 
@@ -583,7 +583,7 @@ def test_ota_notify(app):
 
 
 def test_ota_notify_failed(app):
-    failed_rpc_call(app, general_clusters.Ota.cluster_id, 0, "4652-20002-773")
+    valid_rpc_call(app, general_clusters.Ota.cluster_id, 0, "4652-20002-773", 2, 1)
 
 
 def test_ota_notify_invalid(app):

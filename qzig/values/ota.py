@@ -41,6 +41,7 @@ class Ota(value.Value):
 
         if v[1] != 0:
             LOGGER.error("%s: %r", self.data["name"], v)
+            self.delayed_report(0, self._attribute, "Image Notify Error: %d" % v[1])
             return False
 
         self._save()
@@ -62,7 +63,7 @@ class Ota(value.Value):
 
         :param aps_frame: The silabs aps frame
         :param tsn:
-        :param command_id: The command if
+        :param command_id: The command id
         :param args: The arguments for the command
 
         """
@@ -70,6 +71,8 @@ class Ota(value.Value):
             self._handle_query_next_image(*args)
         elif command_id == 0x03:
             self._handle_image_block(*args)
+        elif command_id == 0x04:
+            self._handle_image_page(*args)
         elif command_id == 0x06:
             self._handle_update_end(*args)
 
@@ -118,8 +121,53 @@ class Ota(value.Value):
             self._cluster.image_block_response(Status.SUCCESS, manufacturer_id, image_type, version, offset, data)
         except FileNotFoundError:
             LOGGER.error("Failed to load data from file %s", filename)
-            self._cluster.image_block_response(Status.ABORT, 0, 0, 0, 0, 0)
+            self._cluster.image_block_response(Status.NO_IMAGE_AVAILABLE, 0, 0, 0, 0, 0)
+
+    async def _send_next_image_block(self):
+        LOGGER.debug("Sending next image block from timer")
+
+        if self._page_size <= 0:
+            LOGGER.debug("Done sending OTA page")
+            return
+
+        # Send the next image block
+        self._handle_image_block(0, self._manufacturer_id, self._image_type, self._version, self._offset, self._max_size)
+
+        # Update values with progress
+        self._page_size -= self._max_size
+        self._offset += self._max_size
+
+        # Start a timer to send the next block
+        Timer(self._response_spacing, self._send_next_image_block)
+
+    def _handle_image_page(self, control, manufacturer_id, image_type, version, offset, max_size, page_size, response_spacing, *args):
+        LOGGER.debug("Image Page Request - Control %d Manufacturer %d Type %d Version %d Offset %d Max %d Page %d Response %d",
+                     control, manufacturer_id, image_type, version, offset, max_size, page_size, response_spacing)
+
+        # Save values
+        self._manufacturer_id = manufacturer_id
+        self._image_type = image_type
+        self._version = version
+        self._offset = offset
+        self._max_size = max_size
+        self._page_size = page_size
+        self._response_spacing = response_spacing
+
+        # Start the upload process
+        Timer(0, self._send_next_image_block)
 
     def _handle_update_end(self, status, manufacturer_id, image_type, version):
         LOGGER.debug("Update End Request - Status %d Manufactor %s Type %d Version %d", status, manufacturer_id, image_type, version)
         self._cluster.upgrade_end_response(manufacturer_id, image_type, version, 0, 0)
+        self.delayed_report(0, self._attribute, "Update End Status: %d" % status)
+
+
+class Timer:
+    def __init__(self, timeout, callback):
+        self._timeout = timeout / 1000
+        self._callback = callback
+        self._task = asyncio.ensure_future(self._job())
+
+    async def _job(self):
+        await asyncio.sleep(self._timeout)
+        await self._callback()

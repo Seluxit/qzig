@@ -139,9 +139,9 @@ class MockCluster():
         return self.dummy
 
 
-def run_loop():
+def run_loop(delay=.00001):
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.sleep(.00001))
+    loop.run_until_complete(asyncio.sleep(delay))
 
 
 @asyncio.coroutine
