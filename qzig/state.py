@@ -3,6 +3,7 @@ import logging
 import enum
 
 import qzig.model as model
+from bellows.zigbee.exceptions import DeliveryError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -111,5 +112,13 @@ class State(model.Model):
 
         self.data["data"] = str(data["data"])
 
-        res = yield from self._parent._handle_control(data["data"])
-        return res
+        try:
+            res = yield from self._parent._handle_control(data["data"])
+            return res
+        except DeliveryError as e:
+            LOGGER.error("Faild to send message")
+            return str(e)
+        except Exception as e:
+            LOGGER.error("Exception: %s (%s)", e, type(e))
+            print(traceback.print_exc())
+            return str(e)
