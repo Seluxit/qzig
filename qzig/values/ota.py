@@ -123,7 +123,8 @@ class Ota(value.Value):
             LOGGER.error("Failed to load data from file %s", filename)
             self._cluster.image_block_response(Status.NO_IMAGE_AVAILABLE, 0, 0, 0, 0, 0)
 
-    async def _send_next_image_block(self):
+    @asyncio.coroutine
+    def _send_next_image_block(self):
         LOGGER.debug("Sending next image block from timer")
 
         if self._page_size <= 0:
@@ -168,6 +169,7 @@ class Timer:
         self._callback = callback
         self._task = asyncio.ensure_future(self._job())
 
-    async def _job(self):
-        await asyncio.sleep(self._timeout)
-        await self._callback()
+    @asyncio.coroutine
+    def _job(self):
+        yield from asyncio.sleep(self._timeout)
+        yield from self._callback()

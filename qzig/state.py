@@ -116,7 +116,7 @@ class State(model.Model):
         try:
             res = yield from self._parent._handle_control(data["data"])
             return res
-        except DeliveryError as e: # pragma: nocover
+        except DeliveryError as e:  # pragma: nocover
             LOGGER.error("Faild to send message")
             return str(e)
         except Exception as e:

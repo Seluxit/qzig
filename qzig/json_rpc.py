@@ -126,7 +126,7 @@ class JsonRPC(asyncio.Protocol):
             except AssertionError as e:  # pragma: nocover
                 LOGGER.error("Assertion error", exc_info=True)
                 raise e
-            except Exception as e: # pragma: nocover
+            except Exception as e:  # pragma: nocover
                 LOGGER.error("Exception: %s (%s)", e, type(e))
                 print(traceback.print_exc())
                 result = str(e)
