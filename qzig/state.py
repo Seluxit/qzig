@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import enum
+import traceback
 
 import qzig.model as model
 from bellows.zigbee.exceptions import DeliveryError
@@ -115,7 +116,7 @@ class State(model.Model):
         try:
             res = yield from self._parent._handle_control(data["data"])
             return res
-        except DeliveryError as e:
+        except DeliveryError as e: # pragma: nocover
             LOGGER.error("Faild to send message")
             return str(e)
         except Exception as e:
