@@ -33,18 +33,19 @@ class Ota(value.Value):
         """
         try:
             data = [int(x) for x in data.split("-")]
-            if len(data) < 3:
+            if len(data) != 3:
                 return "Invalid data format"
         except Exception:
             return "Invalid data format"
 
+        LOGGER.debug("Sending Image Notify for %s-%s-%s\n", data[0], data[1], data[2])
         payload = 3  # Query jitter, manufacturer code, image type, and new file version
         jitter = 100
         v = yield from self._cluster.image_notify(payload, jitter, data[0], data[1], data[2])
 
-        if v[1] != 0:
+        if v != True:
             LOGGER.error("%s: %r", self.data["name"], v)
-            self.delayed_report(0, self._attribute, "Image Notify Error: %d" % v[1])
+            self.delayed_report(0, self._attribute, "Image Notify Error: %r" % v)
             return False
 
         self._save()
