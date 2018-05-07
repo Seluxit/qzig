@@ -31,8 +31,11 @@ class Ota(value.Value):
 
         Expects data to be in this format: 4652-20002-773
         """
-        data = [int(x) for x in data.split("-")]
-        if len(data) < 3:
+        try:
+            data = [int(x) for x in data.split("-")]
+            if len(data) < 3:
+                return "Invalid data format"
+        except Exception:
             return "Invalid data format"
 
         payload = 3  # Query jitter, manufacturer code, image type, and new file version

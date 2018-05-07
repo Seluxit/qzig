@@ -586,5 +586,9 @@ def test_ota_notify_failed(app):
     valid_rpc_call(app, general_clusters.Ota.cluster_id, 0, "4652-20002-773", 2, 1)
 
 
-def test_ota_notify_invalid(app):
+def test_ota_notify_invalid_format(app):
     failed_rpc_call(app, general_clusters.Ota.cluster_id, 0, "4652")
+
+
+def test_ota_notify_invalid_type(app):
+    failed_rpc_call(app, general_clusters.Ota.cluster_id, 0, True)
