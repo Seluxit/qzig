@@ -11,7 +11,7 @@ import qzig.application as application
 def setup_logging():
     """Setup the logging"""
     # set up logging to file
-    format = '%(asctime)s %(name)-14s %(levelname)-8s %(message)s'
+    format = '%(asctime)s %(name)-20s %(levelname)-8s %(message)s'
     logging.basicConfig(level=logging.DEBUG,
                         format=format,
                         datefmt='%m-%d %H:%M',
@@ -21,7 +21,7 @@ def setup_logging():
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
     # set a format which is simpler for console use
-    formatter = logging.Formatter('%(name)-14s: %(levelname)-8s %(message)s')
+    formatter = logging.Formatter('[%(asctime)s] %(name)-20s: %(levelname)-8s %(message)s')
     # tell the handler to use this format
     console.setFormatter(formatter)
     # add the handler to the root logger
