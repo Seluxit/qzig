@@ -43,8 +43,7 @@ class Ota(value.Value):
         jitter = 100
         v = yield from self._cluster.image_notify(payload, jitter, data[0], data[1], data[2])
 
-        if v != True:
-            LOGGER.error("%s: %r", self.data["name"], v)
+        if (isinstance(v, list) and v[1] != 0) or (not isinstance(v, list) and v is not True):
             self.delayed_report(0, self._attribute, "Image Notify Error: %r" % v)
             return False
 
@@ -135,12 +134,15 @@ class Ota(value.Value):
             LOGGER.debug("Done sending OTA page")
             return
 
-        # Send the next image block
-        self._handle_image_block(0, self._manufacturer_id, self._image_type, self._version, self._offset, self._max_size)
+        try:
+            # Send the next image block
+            self._handle_image_block(0, self._manufacturer_id, self._image_type, self._version, self._offset, self._max_size)
 
-        # Update values with progress
-        self._page_size -= self._max_size
-        self._offset += self._max_size
+            # Update values with progress
+            self._page_size -= self._max_size
+            self._offset += self._max_size
+        except Exception as e:  # pragma: nocover
+            LOGGER.error("Error when sending OTA frame from Timer: %s\n", e.message)
 
         # Start a timer to send the next block
         Timer(self._response_spacing, self._send_next_image_block)

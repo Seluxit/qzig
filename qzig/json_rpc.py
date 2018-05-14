@@ -65,12 +65,12 @@ class JsonRPC(asyncio.Protocol):
 
     def close(self):
         """Close the server connection and queues"""
-        self._app = None
         self._sendq.put_nowait(self.Terminator)
         self._task_send.cancel()
         self._reqq.put_nowait(self.Terminator)
         self._task_request.cancel()
         self._transport.close()
+        self._app = None
 
     @asyncio.coroutine
     def _send_task(self):

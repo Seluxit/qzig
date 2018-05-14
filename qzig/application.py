@@ -307,7 +307,7 @@ class Application():
     def get(self, url, data=None):
         """Get request handler
 
-        Only GET on state is supported
+        Only GET on device and state is supported
 
         :param url: The url the post was send on
         :param data: None
@@ -317,13 +317,13 @@ class Application():
         """
         service, id = self._split_url(url)
 
-        if service == "state":
+        if service == "state" or service == "device":
             s = self._network._find_child(id)
             if s is None:
                 return "Failed to find id %s" % id
 
-            if s.name != "state":
-                return "ID is not a state"
+            if s.name != "state" and s.name != "device":
+                return "ID is not a device or state"
 
             res = yield from s._handle_get()
             return res

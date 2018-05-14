@@ -268,3 +268,11 @@ class Device(model.Model):
             yield from self._dev.zdo.bind(endpoint_id, cluster_id)
         except Exception:  # pragma: no cover
             LOGGER.error("Failed to bind to device")
+
+    @asyncio.coroutine
+    def _handle_get(self):
+        self.read_device_info()
+
+        self._send_post("", self.get_data())
+
+        return True
