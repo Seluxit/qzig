@@ -94,6 +94,20 @@ def test_wrong_network_data(app, store):
     util._startup(app)
 
 
+def test_wrong_device_data(app, tmpdir, store):
+    app._gateway = None
+    data = tmpdir + "/../test_zigbee_device_and_endpoin0store/"
+    os.system("cp -rf %s %s" % (data, store))
+
+    dev = (store + "/device").listdir()[0].basename
+    store += "/device/" + dev + "/device.json"
+    with open(str(store), 'w') as f:
+        f.write("WRONG")
+
+    devices = util._get_device()
+    util._startup(app, devices)
+
+
 def test_disconnect_from_server(app):
     util._startup(app)
 

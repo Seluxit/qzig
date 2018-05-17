@@ -264,10 +264,10 @@ def test_zigbee_ota_page_update(app):
     assert app._rpc._transport.write.call_count == (count + 1)
 
     cluster.handle_cluster_request(0, 0, 4, (0, 2, 2, 2, 0, 50, 150, 10))
-    util.run_loop(.0055)
+    util.run_loop(.006)
     assert app._rpc._transport.write.call_count == (count + 2)
 
-    util.run_loop(.0055)
+    util.run_loop(.006)
     assert app._rpc._transport.write.call_count == (count + 3)
 
     os.system("rm ota/2-2-2.*")

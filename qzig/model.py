@@ -115,7 +115,12 @@ class Model():
                     continue
 
                 with open(dir + "/" + child_name + ".json", 'r') as f:
-                    load = json.load(f)
+                    try:
+                        load = json.load(f)
+                    except ValueError:
+                        LOGGER.debug("Invalid JSON in " + dir + "/" + child_name + ".json")
+                        continue
+
                     c = self._create_child(load=load)
                     if isinstance(c, list):
                         for ch in c:
