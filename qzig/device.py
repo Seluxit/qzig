@@ -271,7 +271,7 @@ class Device(model.Model):
 
     @asyncio.coroutine
     def _handle_get(self):
-        self.read_device_info()
+        yield from self.read_device_info()
 
         self._send_post("", self.get_data())
 
