@@ -234,6 +234,9 @@ class Application():
                 LOGGER.debug("Cleaning up old device, so that we can include it")
                 zb_dev.initializing = False
                 zb_dev.status = bellows_device.Status.NEW
+                dev = self._network._get_device(str(device.ieee))
+                if dev:
+                    dev._rebind()
 
             async_fun = getattr(asyncio, "ensure_future", asyncio.async)
             async_fun(self._zb.controller.permit_with_key(device.ieee, self._installcode, self._permit_timeout))

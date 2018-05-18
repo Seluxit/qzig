@@ -90,6 +90,10 @@ class Device(model.Model):
 
         return vals
 
+    def _rebind(self):
+        for v in self._children:
+            v._rebind()
+
     @property
     def ieee(self):
         return self.attr["ieee"]

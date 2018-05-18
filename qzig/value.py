@@ -122,6 +122,9 @@ class Value(model.Model):
     def _create_child(self, **args):
         return state.State(self, **args)
 
+    def _rebind(self):
+        self._should_bind = True
+
     @property
     def endpoint_id(self):
         """Returns the id of the endpoint of the value
