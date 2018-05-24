@@ -42,6 +42,7 @@ class ZigBee():
         LOGGER.debug("Connected to ZigBee")
 
         LOGGER.debug("Configuring...")
+
         self.controller = zigbee.ControllerApplication(s, self.db)
         self.controller.add_listener(self.app)
         yield from self.controller.startup(True)

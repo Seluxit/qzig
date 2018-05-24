@@ -9,7 +9,6 @@ LOGGER = logging.getLogger(__name__)
 
 class OnOff(value.Value):
     """Value to handle the On/Off command"""
-
     _bind = True
     _attribute = 0
 
@@ -27,7 +26,11 @@ class OnOff(value.Value):
         self.data["number"].min = 0
         self.data["number"].max = 1
         self.data["number"].step = 1
-        self.data["number"].unit = "boolean"
+        if self._get_manufacturer() == "Kaercher":
+            self.data["number"].unit = "states"
+            self._manufacturer = 0x122C
+        else:
+            self.data["number"].unit = "boolean"
 
     @asyncio.coroutine
     def _handle_control(self, data):
@@ -67,6 +70,7 @@ class OnTime(value.Value):
         self.data["number"].step = 1
         if self._get_manufacturer() == "Kaercher":
             self.data["number"].unit = "minutes"
+            self._manufacturer = 0x122C
         else:
             self.data["number"].unit = "seconds"
 
@@ -106,6 +110,7 @@ class OnTimeout(value.Value):
         self.data["number"].step = 1
         if self._get_manufacturer() == "Kaercher":
             self.data["number"].unit = "minutes"
+            self._manufacturer = 0x122C
         else:
             self.data["number"].unit = "seconds"
 
@@ -131,6 +136,7 @@ class BlockageCounter(value.Value):
     """Value to show the blockage counter"""
     _bind = False
     _attribute = 1
+    _manufacturer = 0x122C
 
     def _init(self):
         self.data = {

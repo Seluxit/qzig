@@ -194,8 +194,8 @@ class Value(model.Model):
             if self._bind:
                 LOGGER.debug("Binding to %s" % self.data["name"])
                 yield from self._do_bind(self.endpoint_id, self.cluster_id)
-            else:
-                yield from self._handle_get()
+
+            yield from self._handle_get()
 
     def _add_states(self, types):
         for t in types:
