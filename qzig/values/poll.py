@@ -81,7 +81,7 @@ class PollControlLongPollInterval(value.Value):
         v = yield from self._cluster.set_long_poll_interval(data)
 
         if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+            LOGGER.debug("%s: command %r executed", self.data["name"], v[0])
         else:
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
@@ -122,7 +122,7 @@ class PollControlShortPollInterval(value.Value):
         v = yield from self._cluster.set_short_poll_interval(data)
 
         if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+            LOGGER.debug("%s: command %r executed", self.data["name"], v[0])
         else:
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
@@ -220,7 +220,7 @@ class PollControlFastPollStop(value.Value):
         v = yield from self._cluster.fast_poll_stop()
 
         if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+            LOGGER.debug("%s: command %r executed", self.data["name"], v[0])
         else:
             LOGGER.error("%s: %r", self.data["name"], v)
             return False

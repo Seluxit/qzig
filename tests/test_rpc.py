@@ -41,6 +41,12 @@ def valid_rpc_call(app, cluster, child, value="0", write_call=2, status=0):
     assert '"data": "' + str(value) + '"'
 
 
+def valid_rpc_command_call(app, cluster, child, value="0", write_call=1, status=0):
+    result = simple_rpc_call(app, cluster, child, value, write_call, status)
+    assert "result" in result
+    assert '"data": "' + str(value) + '"'
+
+
 def result_rpc_call(app, cluster, child, value="0", write_call=1):
     result = simple_rpc_call(app, cluster, child, value, write_call)
     assert "result" in result
@@ -176,11 +182,11 @@ def test_state_no_reply(app):
 
 
 def test_state_off_change(app):
-    valid_rpc_call(app, general_clusters.OnOff.cluster_id, 0)
+    valid_rpc_command_call(app, general_clusters.OnOff.cluster_id, 0)
 
 
 def test_state_on_change(app):
-    valid_rpc_call(app, general_clusters.OnOff.cluster_id, 0, "1")
+    valid_rpc_command_call(app, general_clusters.OnOff.cluster_id, 0, "1")
 
 
 def test_state_on_change_failed(app):
@@ -196,7 +202,7 @@ def test_state_on_time_change_failed(app):
 
 
 def test_state_on_timeout_change(app):
-    valid_rpc_call(app, general_clusters.OnOff.cluster_id, 2)
+    valid_rpc_command_call(app, general_clusters.OnOff.cluster_id, 2)
 
 
 def test_state_on_timeout_change_failed(app):
@@ -220,10 +226,9 @@ def test_state_kaercher_on_timeout_change(app):
 
     util.run_loop()
 
-    assert app._rpc._transport.write.call_count == (count + 2)
+    assert app._rpc._transport.write.call_count == (count + 1)
 
-    assert "PUT" in app._rpc._transport.write.call_args[0][0].decode()
-    assert '"data": "0"' in app._rpc._transport.write.call_args[0][0].decode()
+    assert "result" in app._rpc._transport.write.call_args[0][0].decode()
 
 
 def test_state_report_change(app):
@@ -244,7 +249,7 @@ def test_state_poll_check_in_interval_change_failed(app):
 
 
 def test_state_poll_long_interval_change(app):
-    valid_rpc_call(app, general_clusters.PollControl.cluster_id, 1)
+    valid_rpc_command_call(app, general_clusters.PollControl.cluster_id, 1)
 
 
 def test_state_poll_long_interval_change_failed(app):
@@ -252,7 +257,7 @@ def test_state_poll_long_interval_change_failed(app):
 
 
 def test_state_poll_short_interval_change(app):
-    valid_rpc_call(app, general_clusters.PollControl.cluster_id, 2)
+    valid_rpc_command_call(app, general_clusters.PollControl.cluster_id, 2)
 
 
 def test_state_poll_short_interval_change_failed(app):

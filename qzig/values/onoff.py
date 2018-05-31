@@ -40,7 +40,7 @@ class OnOff(value.Value):
             v = yield from self._cluster.off()
 
         if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+            LOGGER.debug("%s: command %r executed", self.data["name"], v[0])
         else:
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
@@ -123,7 +123,7 @@ class OnTimeout(value.Value):
             v = yield from self._cluster.on_with_timed_off()
 
         if v[1] == 0:
-            self.delayed_report(0, self._attribute, v[0])
+            LOGGER.debug("%s: command %r executed", self.data["name"], v[0])
         else:
             LOGGER.error("%s: %r", self.data["name"], v)
             return False
